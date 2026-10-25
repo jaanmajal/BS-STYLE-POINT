@@ -1,4 +1,4 @@
-// BS-STYLE POINT RC TIME ATTACK S1 v8
+// BS-STYLE POINT RC TIME ATTACK S1 v14
 // Firebase Web App configuration is intentionally stored here and loaded by both pages.
 // These values are browser-visible config, not passwords. Protect data with Firebase Auth and database rules.
 window.RC_FIREBASE_CONFIG = {
@@ -11,4 +11,4 @@ window.RC_FIREBASE_CONFIG = {
   appId: "1:384720120260:web:93de2378a3d9eb1a2f9c91",
   measurementId: "G-SYBGV3DBWT"
 };
-window.RC_EVENT_ID = "rc-points-s1";
+window.RC_EVENT_ID = "bs1";
