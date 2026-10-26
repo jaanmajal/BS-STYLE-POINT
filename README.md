@@ -1,4 +1,4 @@
-# BS-STYLE POINT RC TIME ATTACK — S1 v15
+# BS-STYLE POINT RC TIME ATTACK — S1 v23
 
 ## Scoring and DNF gate progress
 
