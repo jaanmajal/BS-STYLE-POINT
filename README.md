@@ -1,30 +1,30 @@
-# BS-STYLE POINT RC TIME ATTACK - S1 v26 Reliable Online Package
+# BS-STYLE POINT RC TIME ATTACK — S1 v27 Reliable Online
 
-Files included:
-- `index.html` - Race Control with online green section borders, persistent local-first result saving, server-confirmed writes, an event-specific pending upload queue, reconnect retry, visible pending status, and before-leave warnings.
-- `results.html` - Dark professional public leaderboard with Overall/SS1-SS4 tabs, filters, driver detail panel, Firebase live status, and Event ID display.
-- `firebase-config.js` - Existing Firebase Web App configuration and default Event ID (`bs1`).
-- `logo.jpg` - TEC-ARTS CRAWLER logo.
+Complete package for Race Control and public results.
 
-## Publish
-1. Extract the ZIP.
-2. Replace the four files in the root of the existing GitHub repository.
-3. Keep all four files together in the repository root.
-4. Publish `main` from `/(root)` in GitHub Pages settings.
-5. Open the site over HTTPS. Use the same Event ID on all Race Control devices; the public link includes it, for example `results.html?event=bs1`.
+## Files
+- `index.html` — Race Control, offline queue and combined result/penalty correction workflow.
+- `results.html` — Dark public results dashboard with Overall and SS1–SS4 tabs, driver detail panel and Firebase status.
+- `firebase-config.js` — Existing Firebase project configuration. Keep this file in the repository root.
+- `logo.jpg` — TEC-ARTS CRAWLER logo.
 
-## Offline and sync safeguards
-- Race data is written to local browser storage before upload is attempted.
-- Every change is queued per Event ID if Firebase is disconnected or the write fails.
-- Queued writes are retried after network restoration, tab visibility restoration, and Firebase reconnection.
-- Successful writes are read back from Firebase before being marked confirmed.
-- A visible banner shows the number of pending changes.
-- The page warns before leaving while a result is awaiting save or uploads are pending.
-- Sync conflicts are not silently overwritten; the organiser must confirm whether a queued local value should replace a different online value.
-- If local and Firebase data differ without a recorded pending queue, the app saves a safety snapshot and asks before loading Firebase data.
-- JSON backup export includes pending changes for the active Event ID.
+## S1 v27 correction workflow
+1. Open **Backups, import, corrections** and choose a driver and SS.
+2. Review **Recorded before correction** and **After correction preview**.
+3. Select a new status if needed, or leave status blank to retain the saved status. Enter a new finish time or DNF gate count only if needed.
+4. Penalty count inputs are blank by default. Blank means **keep the recorded count**; enter a number to replace the count; enter `0` to remove that penalty type.
+5. Press **Save result + penalties together**. The result and penalty data are saved locally together and, when connected, written to Firebase in one multi-path update and verified.
+6. After saving, inputs clear and the before/after comparison remains visible. Changing the selected driver or stage starts a fresh correction.
 
-## Important limitations
-This reduces the risk of missing results but cannot guarantee zero loss if the browser's storage is cleared, the device is damaged, or storage quota is exhausted. Export JSON backups regularly, and verify `SAVED ONLINE` before assuming Firebase has confirmed a result. Local mode does not synchronize between devices until you connect to the same Firebase project and Event ID.
+The exact driver/stage currently being timed or awaiting SAVE RESULT cannot be corrected until that run is resolved. Corrections to other drivers do not interrupt the active timer.
 
-Firebase Web App configuration is visible in browser code by design. Never include organizer passwords in these files. Keep Firebase Authentication and Realtime Database rules configured to restrict writes to authorized accounts.
+## Online/offline safety
+- Local data and a persistent pending queue are retained in browser storage.
+- Online corrections are written to Firebase together and verified by reading the saved values back.
+- If offline or a write fails, the changes remain queued for retry. Export a JSON backup if the queue-storage warning appears.
+- Before competition, test online save, offline save, reconnect, and public leaderboard verification on the actual mobile devices.
+
+## GitHub Pages deployment
+Upload the files to the repository root and enable GitHub Pages from `main` / root. Use the same Firebase project and Event ID on every marshal device. Public results use `results.html?event=YOUR_EVENT_ID`.
+
+The Firebase configuration and organizer credentials are not to be changed by this update. Do not share organizer passwords.
