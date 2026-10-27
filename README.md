@@ -1,15 +1,22 @@
-# BS-STYLE POINT RC TIME ATTACK S1 v27.5.7
+# BS-STYLE POINT RC TIME ATTACK — Marshal-only link (v27.5.12)
 
-This update restores the original S1 v27.5.4 page layout and applies only:
-- Option C online styling to the Race Control card: original dark background, green border, subtle green glow.
-- Original Race Control border/background when offline.
-- Responsive full-width sizing for laptop, tablet and mobile without moving or redesigning the existing sections.
+This package adds `marshal.html`, a dedicated mobile-friendly marshal URL that displays only Section 1 Race Control while retaining the same application logic and Firebase configuration.
 
-All existing v27.5.4 application files and workflows are retained, including Firebase/Event ID, scoring, penalties, Driver Draw & Spin, late entry, corrections, offline queue, pending-driver public results, favicon and collapsible New Race reset.
+## GitHub Pages URL
+After uploading all files to the existing repository root, use:
 
-## Deploy
-1. Back up the current repository.
-2. Extract this ZIP.
-3. Replace the files in the GitHub Pages repository root.
-4. Commit and wait for deployment.
-5. Test online/offline appearance and result saving on the actual devices.
+`https://jaanmajal.github.io/BS-STYLE-POINT/marshal.html`
+
+## How it works
+- `marshal.html` is a focused view of the same Race Control app.
+- The other sections are hidden from the marshal page; their DOM remains available to the existing app logic.
+- The connection/Event ID controls are available in a compact, collapsible panel.
+- Uses the same `firebase-config.js`, Event ID field, local storage keys and Firebase event data as `index.html`.
+- `index.html` remains the full organiser/admin interface.
+- `results.html` remains the public results page.
+
+## Deployment
+Upload/replace the included files in the repository root and commit. Do not delete `index.html` or `results.html`.
+
+## Important
+The marshal-only view is a user-interface convenience, not a security boundary. Admin permissions and Firebase security rules still need to protect privileged operations. Test sign-in, timer start/stop, saving a result, and syncing on two devices before competition.
