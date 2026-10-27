@@ -1,29 +1,15 @@
-# BS-STYLE POINT RC TIME ATTACK S1 v27.3
+# BS-STYLE POINT RC TIME ATTACK S1 v27.5.1
 
-Updated from the organizer-edited v27.1 `index.html`, preserving the organizer's wording changes and existing v27.1 features, then adding the per-SS Driver Draw & Spin feature from v27.2.
+This is based on S1 v27.5. It includes only two small updates requested by the organiser:
 
-## Included files
-- `index.html` — edited wording + Driver Draw & Spin
-- `results.html` — public results page carried forward from v27.2
+1. Uses the existing TEC-ARTS CRAWLER logo as the browser tab icon on Race Control and Public Results (`favicon.png`).
+2. Makes the “New Race — Clear All Race Data” section collapsible and collapsed by default. The existing reset password, confirmations, Firebase checks and reset behaviour are unchanged.
+
+No concurrent SS dispatch logic was added in this build. Existing driver draw, late entry, edit driver name, scoring, penalties, DNF gate progress, correction workflow, offline queue and save safeguards are retained from v27.5.
+
+## Files
+- `index.html` — Race Control
+- `results.html` — Public Results
 - `firebase-config.js` — existing Firebase configuration
-- `logo.jpg` — existing logo
-
-## Driver Draw & Spin
-- Separate random running order for each SS
-- Saved draw order and lock state in the same Firebase Event ID
-- Uses the selected SS draw order in the main driver dropdown
-- Draw/lock controls require the existing admin PIN
-- Draw is locked automatically once a result is saved for that SS
-- Driver registration/removal is blocked after any draw lock or saved SS result
-- If an SS has a draw, its order must be locked before timing can start
-- Removing a driver also clears their local penalty records and removes them from unlocked draw lists
-- Draw order and lock data are included in backup/import sync queue
-
-## Preserved from organizer-edited file
-- Wording edits in the uploaded `index(EDITED).html`
-- Save-result confirmation animation
-- Main-screen penalty plus-only controls
-- Penalty tap cooldown
-- Existing scoring, correction, DNF gate progress, Firebase, offline queue and result-save safeguards
-
-Please test the draw synchronization on two devices using different SS before competition. Live Firebase behavior was not tested in this build environment.
+- `logo.jpg` — full logo
+- `favicon.png` — browser tab icon made from the logo
