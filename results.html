@@ -33,6 +33,141 @@
 .stage-closed-hint{font-size:10px;color:#ffb0a8;margin-left:5px}
 @media(max-width:700px){.stage-status-grid{grid-template-columns:1fr;padding:8px}.stage-status-head{padding:9px}.pending-list li{font-size:12px}}
 
+
+/* Responsive results polish: phone cards, ordered pending list, wide-screen readability */
+.shell{width:100%;max-width:1920px;margin-inline:auto;padding:clamp(8px,1.1vw,24px)}
+.content-grid{align-items:start;gap:clamp(10px,1vw,18px)}
+.content-grid>.panel:first-child{grid-column:1;grid-row:1}
+.content-grid>#driverDetail{grid-column:2;grid-row:1}
+.content-grid>.stage-status-panel{grid-column:1/-1;grid-row:2;margin:0}
+.mobile-board{display:none}
+.stage-status-panel .panel-head p{max-width:72ch;line-height:1.45}
+.stage-status-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;padding:clamp(8px,1vw,14px)}
+.stage-status-card{min-width:0}
+.pending-list{max-height:440px;overflow:auto;overscroll-behavior:contain}
+.pending-list li{min-height:40px}
+.toolbar{align-items:stretch}
+.tabs{min-width:0}
+.tools{min-width:0}
+@media(min-width:1600px){
+  .shell{max-width:2200px;padding:26px 32px 14px}
+  .hero{min-height:180px;padding:30px 34px;border-radius:20px}
+  .hero h1{font-size:clamp(54px,3.1vw,76px)}
+  .hero-sub{font-size:14px}
+  .toolbar{padding:14px;gap:14px}
+  .tab{font-size:14px;padding:14px 20px}
+  .search-wrap input,.tools select{height:48px;font-size:14px}
+  .stats{gap:14px;margin-bottom:16px}
+  .stat{padding:18px 20px;border-radius:14px}
+  .stat .label{font-size:12px}
+  .stat .value{font-size:32px}
+  .content-grid{gap:16px}
+  .panel-head{padding:19px 21px}
+  .panel-head h2{font-size:16px}
+  .panel-head p{font-size:13px}
+  table{font-size:14px}
+  thead th{font-size:11px;padding:15px 13px}
+  tbody td{padding:14px 13px}
+  .stage-status-name{font-size:14px}
+  .stage-status-reason{font-size:12px}
+  .pending-list li{font-size:13px;padding:10px}
+}
+@media(min-width:2200px){.shell{max-width:2500px}}
+@media(max-width:1050px){
+  .content-grid{grid-template-columns:minmax(0,1fr)}
+  .content-grid>.panel:first-child,.content-grid>#driverDetail,.content-grid>.stage-status-panel{grid-column:1;grid-row:auto}
+  .content-grid>.stage-status-panel{order:2}
+  .content-grid>#driverDetail{order:3}
+  .content-grid>.panel:first-child{order:1}
+  .detail{min-height:0}
+  .stage-status-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+}
+@media(max-width:700px){
+  .shell{padding:8px 8px 14px}
+  .hero{border-radius:14px;padding:17px 14px;min-height:0}
+  .hero h1{font-size:clamp(28px,8.5vw,42px)}
+  .hero-sub{font-size:9px;letter-spacing:.09em}
+  .event-meta{width:100%}
+  .toolbar{display:flex;flex-direction:column;gap:9px;padding:8px;margin:8px 0}
+  .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;min-width:0;overflow:visible;gap:6px}
+  .tab{min-width:0;width:100%;padding:10px 4px;font-size:10px;line-height:1.25;white-space:normal;letter-spacing:0;border-radius:8px}
+  .tools{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}
+  .search-wrap{grid-column:1/-1;min-width:0}
+  .search-wrap input,.tools select{width:100%;min-width:0;height:44px;font-size:13px}
+  .connection{width:100%;min-width:0;justify-content:flex-start}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:9px}
+  .stat{padding:10px;border-radius:10px}
+  .stat .label{font-size:9px;letter-spacing:.07em}
+  .stat .value{font-size:22px}
+  .content-grid{display:flex;flex-direction:column;gap:10px}
+  .content-grid>.panel:first-child{order:1;width:100%}
+  .content-grid>.stage-status-panel{order:2;width:100%}
+  .content-grid>#driverDetail{order:3;width:100%}
+  .panel,.stage-status-panel{border-radius:12px}
+  .panel-head{padding:12px 11px;gap:8px}
+  .panel-head h2{font-size:11px;letter-spacing:.055em}
+  .panel-head p{font-size:10px;line-height:1.35}
+  .head-actions{gap:5px}
+  .tiny-btn{font-size:10px;padding:7px}
+  .table-scroll{display:none}
+  .mobile-board{display:grid;gap:8px;padding:8px}
+  .mobile-driver-card{display:block;width:100%;text-align:left;padding:12px;border:1px solid #293b49;border-radius:12px;background:linear-gradient(145deg,#111d27,#0a1219);color:var(--text);box-shadow:0 5px 14px #0003}
+  .mobile-driver-card:active{transform:scale(.995)}
+  .mobile-driver-card.selected{border-color:var(--yellow);box-shadow:0 0 0 1px #ffd00055,inset 3px 0 var(--yellow)}
+  .mobile-card-top{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:center}
+  .mobile-rank{display:grid;place-items:center;width:32px;height:34px;border-radius:8px;background:#1a2b3a;border:1px solid #344858;color:#cbd7e1;font-weight:950;font-size:12px}
+  .mobile-rank.top1{color:var(--yellow);border-color:#8b7000}
+  .mobile-driver-main{min-width:0}
+  .mobile-driver-main strong{display:block;font-size:14px;line-height:1.2;overflow-wrap:anywhere}
+  .mobile-driver-main small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+  .mobile-total{text-align:right;white-space:nowrap}
+  .mobile-total strong{display:block;font-size:22px;line-height:1;color:var(--yellow);font-weight:1000}
+  .mobile-total small{display:block;font-size:8px;color:var(--muted);letter-spacing:.08em;margin-top:4px}
+  .mobile-stage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}
+  .mobile-stage-chip{min-width:0;padding:8px;border:1px solid #263945;border-radius:8px;background:#0a131d}
+  .mobile-stage-chip .stage-label{display:block;color:#9eabb7;font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+  .mobile-stage-chip strong{display:block;font-size:12px;line-height:1.25;margin-top:4px;overflow-wrap:anywhere}
+  .mobile-stage-chip small{display:block;color:#aab8c4;font-size:9px;margin-top:3px;overflow-wrap:anywhere}
+  .mobile-stage-chip.finish{border-color:#1e6141;background:#0b2117}
+  .mobile-stage-chip.dnf{border-color:#6b302c;background:#251211}
+  .mobile-stage-chip.pending{border-color:#2a3b49}
+  .mobile-result-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid #273746}
+  .mobile-result-main{font-size:18px;font-weight:950;font-variant-numeric:tabular-nums}
+  .mobile-result-sub{color:var(--muted);font-size:10px;margin-top:3px}
+  .detail-hero{grid-template-columns:auto minmax(0,1fr);padding:12px;gap:9px}
+  .detail-number{font-size:16px;padding:9px 10px}
+  .detail-name{font-size:18px}
+  .detail-meta{font-size:10px;line-height:1.4}
+  .detail-total{grid-column:1/-1;text-align:left;display:flex;align-items:baseline;gap:8px}
+  .detail-total strong{font-size:23px}
+  .detail-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:9px}
+  .mini-stat{padding:9px 7px}
+  .mini-stat span{font-size:8px}
+  .mini-stat strong{font-size:16px}
+  .detail-section{padding:0 9px 10px}
+  .section-title{font-size:10px;flex-wrap:wrap}
+  .performance-row{grid-template-columns:34px minmax(25px,1fr) 30px;gap:6px}
+  .stage-status-panel .panel-head{align-items:flex-start}
+  .stage-status-panel .panel-head .pill{font-size:9px;white-space:nowrap}
+  .stage-status-grid{grid-template-columns:1fr;gap:7px;padding:8px}
+  .stage-status-head{padding:10px}
+  .stage-status-name{font-size:11px}
+  .stage-status-reason{font-size:10px;padding:8px 10px}
+  .pending-list{max-height:none;padding:0 8px 8px}
+  .pending-list li{min-height:38px;font-size:11px;padding:7px}
+  .last-updated{font-size:9px;padding:9px 10px}
+  .brand-footer{padding-top:12px}
+}
+@media(max-width:360px){
+  .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mobile-card-top{grid-template-columns:30px minmax(0,1fr) auto;gap:6px}
+  .mobile-driver-main strong{font-size:12px}
+  .mobile-total strong{font-size:19px}
+  .mobile-stage-chip{padding:6px}
+}
+@media(max-width:700px){.detail-table{min-width:640px}.detail-section .table-scroll{border:1px solid #223541;border-radius:8px}}
+@media(prefers-reduced-motion:reduce){.mobile-driver-card:active{transform:none}}
+
 </style>
 </head>
 <body>
@@ -71,17 +206,18 @@
     <div class="stat"><div class="label">Stage finishes</div><div class="value yellow" id="stageFinishCount">—</div></div>
   </section>
 
-  <section class="stage-status-panel" aria-labelledby="stageStatusHeading">
-    <div class="panel-head"><div><h2 id="stageStatusHeading">Special Stage Status &amp; Pending Drivers</h2><p>Only stages with a saved draw and locked running order are OPEN. Completed drivers disappear from each pending list.</p></div><span class="pill" id="openStageCount">0 stages open</span></div>
-    <div id="stageStatusGrid" class="stage-status-grid"><div class="empty">Waiting for draw and lock status from Firebase…</div></div>
-  </section>
   <div id="message" class="error-message hidden" role="alert"></div>
   <section class="content-grid">
     <article class="panel">
       <div class="panel-head"><div><h2 id="tableTitle">Overall points leaderboard</h2><p id="tableSubtitle">Ranked by total net points across configured stages</p></div><div class="head-actions"><span class="pill" id="rowCount">0 drivers</span><button class="tiny-btn" id="refresh" type="button">↻ Refresh</button></div></div>
       <div class="table-scroll"><table><thead id="tableHead"></thead><tbody id="board"><tr><td class="empty">Waiting for live results…</td></tr></tbody></table></div>
+      <div id="mobileBoard" class="mobile-board" aria-label="Mobile leaderboard"></div>
       <div class="last-updated"><span id="eventLabel">Event ID: —</span><span id="lastUpdated">Waiting for Firebase data</span></div>
     </article>
+  <section class="stage-status-panel" aria-labelledby="stageStatusHeading">
+    <div class="panel-head"><div><h2 id="stageStatusHeading">Special Stage Status &amp; Pending Drivers</h2><p>Only stages with a saved draw and locked running order are OPEN. Completed drivers disappear from each pending list.</p></div><span class="pill" id="openStageCount">0 stages open</span></div>
+    <div id="stageStatusGrid" class="stage-status-grid"><div class="empty">Waiting for draw and lock status from Firebase…</div></div>
+  </section>
     <aside class="panel detail" id="driverDetail" aria-live="polite">
       <div class="panel-head"><div><h2>Driver performance</h2><p>Tap a driver in the leaderboard to view details</p></div><span class="pill" id="detailStageCount">— stages</span></div>
       <div id="detailContent" class="empty">Select a driver to see their stage times, penalty deductions, gate progress and points.</div>
@@ -136,9 +272,10 @@ function getFilteredRows(){const q=$('search').value.trim().toLowerCase(),filter
  return rows}
 function tableHeader(){if(currentView==='overall'){return `<tr><th>#</th><th>Driver</th>${data.cutoffs.map((_,s)=>`<th>SS${s+1}</th>`).join('')}<th>Total</th><th>Status</th></tr>`}const s=Number(currentView.split(':')[1]);return `<tr><th>#</th><th>Driver</th><th>Result / time</th><th>Gates</th><th>Penalty</th><th>Net points</th><th>Status</th></tr>`}
 function stageCell(id,s){const r=result(id,s);if(!r)return `<td><span class="neutral">—</span><span class="subcell">Pending</span></td>`;const pts=stagePoints(id,s),pen=penaltyTotal(id,s);if(r.status==='dnf')return `<td><span class="stage-cell-main error">DNF</span><span class="stage-cell-sub">${esc(stageProgress(r,s))}</span><span class="stage-cell-sub">${pts} pts</span></td>`;if(r.status==='dns')return `<td><span class="stage-cell-main">DNS</span><span class="stage-cell-sub">0 pts</span></td>`;return `<td><span class="stage-cell-main">${fmt(rawTime(id,s,r))}</span><span class="stage-cell-sub">${pts} pts${pen?` · <span class="deduction">−${pen}</span>`:''}</span></td>`}
+function renderMobileBoard(rows){const host=$('mobileBoard');if(!host)return;if(!rows.length){host.innerHTML=`<div class="empty">${Object.keys(data.drivers).length?'No drivers match the selected search/filter.':'No drivers registered for this event yet.'}</div>`;return}host.innerHTML=rows.map((r,i)=>{const rankClass=i===0?'top1':i===1?'top2':i===2?'top3':'';const late=data.lateEntries?.[r.id]?'<span class="late-entry-badge">LATE ENTRY</span>':'';if(currentView==='overall'){const chips=data.cutoffs.map((_,s)=>{const rr=result(r.id,s),pts=stagePoints(r.id,s),pen=penaltyTotal(r.id,s);let cls='pending',main='PENDING',sub=pts===null?'No result':pts+' pts';if(rr?.status==='finish'){cls='finish';main=fmt(rawTime(r.id,s,rr));sub=(pts===null?'—':pts+' pts')+(pen?' · −'+pen:'')}else if(rr?.status==='dnf'){cls='dnf';main='DNF';sub=stageProgress(rr,s)+' · '+(pts===null?'—':pts+' pts')+(pen?' · −'+pen:'')}else if(rr?.status==='dns'){cls='dnf';main='DNS';sub=(pts===null?'0':pts)+' pts'}return `<div class="mobile-stage-chip ${cls}"><span class="stage-label">SS${s+1}</span><strong>${esc(main)}</strong><small>${esc(sub)}</small></div>`}).join('');return `<button type="button" class="mobile-driver-card ${selectedDriverId===r.id?'selected':''}" data-driver-id="${esc(r.id)}" aria-label="View ${esc(r.d.name||'driver')} performance"><div class="mobile-card-top"><span class="mobile-rank ${rankClass}">${i+1}</span><span class="mobile-driver-main"><strong>${esc(r.d.name||'Unnamed driver')} ${late}</strong><small>${esc(r.status)} overall · ${r.recorded}/${data.cutoffs.length} stages recorded</small></span><span class="mobile-total"><strong>${r.total}</strong><small>TOTAL PTS</small></span></div><div class="mobile-stage-grid">${chips}</div></button>`}const st=Number(currentView.split(':')[1]),rr=result(r.id,st),pen=penaltyTotal(r.id,st),pts=stagePoints(r.id,st);let main='PENDING',sub='Awaiting result',cls='pending';if(rr?.status==='finish'){main=fmt(rawTime(r.id,st,rr));sub='FINISH';cls='finish'}else if(rr?.status==='dnf'){main='DNF';sub=stageProgress(rr,st);cls='dnf'}else if(rr?.status==='dns'){main='DNS';sub='Did not start';cls='dnf'}return `<button type="button" class="mobile-driver-card ${selectedDriverId===r.id?'selected':''}" data-driver-id="${esc(r.id)}" aria-label="View ${esc(r.d.name||'driver')} performance"><div class="mobile-card-top"><span class="mobile-rank ${rankClass}">${i+1}</span><span class="mobile-driver-main"><strong>${esc(r.d.name||'Unnamed driver')} ${late}</strong><small>${esc(r.status)} overall · ${r.recorded}/${data.cutoffs.length} stages recorded</small></span><span class="mobile-total"><strong>${pts===null?'—':pts}</strong><small>SS${st+1} PTS</small></span></div><div class="mobile-result-line"><div><div class="mobile-result-main">${esc(main)}</div><div class="mobile-result-sub">${esc(sub)}${pen?' · penalty −'+pen+' pts':''}</div></div>${statusBadge(rr?String(rr.status).toUpperCase():'PENDING')}</div></button>`}).join('')}
 function renderTable(){const rows=getFilteredRows();$('tableHead').innerHTML=tableHeader();$('rowCount').textContent=`${rows.length} / ${Object.keys(data.drivers).length} drivers`;$('tableTitle').textContent=currentView==='overall'?'Overall points leaderboard':`SS${Number(currentView.split(':')[1])+1} stage results`;$('tableSubtitle').textContent=currentView==='overall'?'Highest total net points ranks first':'Ranked by net stage points; FINISH wins ties';$('sortBy').options[0].textContent=currentView==='overall'?'Sort by total points':'Sort by net points';
- if(!rows.length){$('board').innerHTML=`<tr><td class="empty" colspan="${currentView==='overall'?data.cutoffs.length+4:7}">${Object.keys(data.drivers).length?'No drivers match the selected search/filter.':'No drivers registered for this event yet.'}</td></tr>`;return}
- $('board').innerHTML=rows.map((r,i)=>{const rankClass=i===0?'top1':i===1?'top2':i===2?'top3':'';let cells='';if(currentView==='overall'){cells=data.cutoffs.map((_,s)=>stageCell(r.id,s)).join('')+`<td><span class="points">${r.total}</span></td><td>${statusBadge(r.status)}</td>`}else{const s=Number(currentView.split(':')[1]),rr=result(r.id,s),pen=penaltyTotal(r.id,s),pts=stagePoints(r.id,s);cells=`<td>${rr?rr.status==='finish'?`<span class="stage-cell-main">${fmt(rawTime(r.id,s,rr))}</span>`:`<span class="stage-cell-main">${esc(String(rr.status).toUpperCase())}</span>`:'<span class="neutral">—</span>'}</td><td>${rr?.status==='dnf'?esc(stageProgress(rr,s)):'—'}</td><td class="${pen?'deduction':'neutral'}">${pen?'−'+pen:'0'}</td><td><span class="points">${pts===null?'—':pts}</span></td><td>${statusBadge(rr?String(rr.status).toUpperCase():'PENDING')}</td>`}return `<tr data-driver-id="${esc(r.id)}" tabindex="0" role="button" aria-label="View ${esc(r.d.name)} performance" class="${selectedDriverId===r.id?'selected':''}"><td class="rank ${rankClass}">${i+1}</td><td><div class="driver-cell"><div><span class="driver-name">${esc(r.d.name||'Unnamed driver')}</span>${data.lateEntries?.[r.id]?`<span class="late-entry-badge">LATE ENTRY · SS${Number(data.lateEntries[r.id].targetStage)+1}</span>`:''}</div></div></td>${cells}</tr>`}).join('')}
+ if(!rows.length){$('board').innerHTML=`<tr><td class="empty" colspan="${currentView==='overall'?data.cutoffs.length+4:7}">${Object.keys(data.drivers).length?'No drivers match the selected search/filter.':'No drivers registered for this event yet.'}</td></tr>`;renderMobileBoard([]);return}
+ $('board').innerHTML=rows.map((r,i)=>{const rankClass=i===0?'top1':i===1?'top2':i===2?'top3':'';let cells='';if(currentView==='overall'){cells=data.cutoffs.map((_,s)=>stageCell(r.id,s)).join('')+`<td><span class="points">${r.total}</span></td><td>${statusBadge(r.status)}</td>`}else{const s=Number(currentView.split(':')[1]),rr=result(r.id,s),pen=penaltyTotal(r.id,s),pts=stagePoints(r.id,s);cells=`<td>${rr?rr.status==='finish'?`<span class="stage-cell-main">${fmt(rawTime(r.id,s,rr))}</span>`:`<span class="stage-cell-main">${esc(String(rr.status).toUpperCase())}</span>`:'<span class="neutral">—</span>'}</td><td>${rr?.status==='dnf'?esc(stageProgress(rr,s)):'—'}</td><td class="${pen?'deduction':'neutral'}">${pen?'−'+pen:'0'}</td><td><span class="points">${pts===null?'—':pts}</span></td><td>${statusBadge(rr?String(rr.status).toUpperCase():'PENDING')}</td>`}return `<tr data-driver-id="${esc(r.id)}" tabindex="0" role="button" aria-label="View ${esc(r.d.name)} performance" class="${selectedDriverId===r.id?'selected':''}"><td class="rank ${rankClass}">${i+1}</td><td><div class="driver-cell"><div><span class="driver-name">${esc(r.d.name||'Unnamed driver')}</span>${data.lateEntries?.[r.id]?`<span class="late-entry-badge">LATE ENTRY · SS${Number(data.lateEntries[r.id].targetStage)+1}</span>`:''}</div></div></td>${cells}</tr>`}).join('');renderMobileBoard(rows)}
 function renderDriverDetail(){const rows=allDriverRecords();if(!rows.length){$('detailStageCount').textContent='No drivers';$('detailContent').className='empty';$('detailContent').textContent='Driver details will appear after drivers are registered in Race Control.';return}const overallRows=rows.slice().sort((a,b)=>b.total-a.total||b.finishes-a.finishes||b.last-a.last||b.recorded-a.recorded||a.time-b.time||String(a.d.num).localeCompare(String(b.d.num),undefined,{numeric:true}));let r=overallRows.find(x=>x.id===selectedDriverId);if(!r){r=overallRows[0];selectedDriverId=r.id}const d=r.d;const overallRank=Math.max(1,overallRows.findIndex(x=>x.id===r.id)+1);$('detailStageCount').textContent=`${r.recorded}/${data.cutoffs.length} recorded`;
  const stageCards=data.cutoffs.map((_,s)=>{const rr=result(r.id,s),pts=stagePoints(r.id,s),pen=penaltyTotal(r.id,s),status=rr?String(rr.status).toUpperCase():'PENDING';const score=pts===null?'—':pts;const detail=rr?.status==='finish'?fmt(rawTime(r.id,s,rr)):rr?.status==='dnf'?stageProgress(rr,s):rr?.status==='dns'?'Did not start':'Awaiting result';return `<div class="mini-stat"><span>SS${s+1} · ${esc(status)}</span><strong>${score}</strong><span style="margin-top:4px;color:#9eabb7;text-transform:none;letter-spacing:0;font-weight:600">${esc(detail)}</span>${pen?`<span class="deduction" style="margin-top:4px;text-transform:none;letter-spacing:0">−${pen} penalty pts</span>`:''}</div>`}).join('');
  const maxPts=Math.max(1,...data.cutoffs.map((_,s)=>stagePoints(r.id,s)||0));const bars=data.cutoffs.map((_,s)=>{const pts=stagePoints(r.id,s)||0;return `<div class="performance-row"><span class="stage-name">SS${s+1}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0,Math.min(100,pts/maxPts*100))}%"></div></div><span class="bar-value">${pts}</span></div>`}).join('');
@@ -155,7 +292,7 @@ function setConnection(state,detail){const el=$('connection');el.classList.toggl
 function showMessage(text){$('message').textContent=text;$('message').classList.remove('hidden')}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b||b.disabled)return;currentView=b.dataset.view;renderTable();renderTabs();renderStageStatus()});
 $('search').addEventListener('input',renderTable);$('statusFilter').addEventListener('change',renderTable);$('sortBy').addEventListener('change',renderTable);
-$('board').addEventListener('click',e=>{const tr=e.target.closest('tr[data-driver-id]');if(!tr)return;selectedDriverId=tr.dataset.driverId;renderTable();renderDriverDetail()});
+$('board').addEventListener('click',e=>{const tr=e.target.closest('tr[data-driver-id]');if(!tr)return;selectedDriverId=tr.dataset.driverId;renderTable();renderDriverDetail()});$('mobileBoard').addEventListener('click',e=>{const card=e.target.closest('[data-driver-id]');if(!card)return;selectedDriverId=card.dataset.driverId;renderTable();renderDriverDetail()});$('mobileBoard').addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const card=e.target.closest('[data-driver-id]');if(!card)return;e.preventDefault();selectedDriverId=card.dataset.driverId;renderTable();renderDriverDetail()});
 $('board').addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const tr=e.target.closest('tr[data-driver-id]');if(!tr)return;e.preventDefault();selectedDriverId=tr.dataset.driverId;renderTable();renderDriverDetail()});
 $('refresh').addEventListener('click',()=>{if(!dbRef){showMessage('Firebase is not configured. Check that firebase-config.js is present in the repository root.');return}setConnection('connecting','Refreshing event data…');dbRef.once('value').then(s=>{if(s.exists()){data=normalizeData(s.val());lastDataAt=new Date();render();setConnection(connected?'online':'offline',connected?'Live updates enabled':'Data refreshed; currently offline')}else{$('board').innerHTML=`<tr><td class="empty" colspan="8">No event data found for Event ID ${esc(eventId)}.</td></tr>`;setConnection('offline','Event not initialized')}}).catch(e=>{setConnection('error','Database read failed');showMessage(e.message+' Check Firebase Realtime Database rules.')})});
 window.addEventListener('online',()=>setConnection(connected?'online':'connecting',connected?'Firebase connected':'Network restored; checking Firebase…'));window.addEventListener('offline',()=>setConnection('offline','Device network is offline'));
