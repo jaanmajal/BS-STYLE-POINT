@@ -1,12 +1,15 @@
-# BS-STYLE POINT RC TIME ATTACK S1 v27.5.6
+# BS-STYLE POINT RC TIME ATTACK S1 v27.5.7
 
-## Update
-- Removed the **New Race** button from Stage Overview Quick Actions.
-- Moved the admin PIN input, Unlock 1 min, Lock controls and admin status into Quick Actions in the Stage Overview panel.
-- The New Race — Clear All Race Data section remains at the bottom of the page and retains its own reset password and confirmation workflow.
-- Protected Changes now explains where to find Admin Access.
+This update restores the original S1 v27.5.4 page layout and applies only:
+- Option C online styling to the Race Control card: original dark background, green border, subtle green glow.
+- Original Race Control border/background when offline.
+- Responsive full-width sizing for laptop, tablet and mobile without moving or redesigning the existing sections.
 
-All existing Firebase, scoring, penalty, draw, late-entry, correction, offline queue and result-saving logic is otherwise retained from v27.5.5.
+All existing v27.5.4 application files and workflows are retained, including Firebase/Event ID, scoring, penalties, Driver Draw & Spin, late entry, corrections, offline queue, pending-driver public results, favicon and collapsible New Race reset.
 
 ## Deploy
-Replace the files in the GitHub repository root with the files in this package, commit, and wait for GitHub Pages to publish. Test admin unlock/lock and protected actions before competition.
+1. Back up the current repository.
+2. Extract this ZIP.
+3. Replace the files in the GitHub Pages repository root.
+4. Commit and wait for deployment.
+5. Test online/offline appearance and result saving on the actual devices.
