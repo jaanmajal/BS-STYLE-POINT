@@ -712,14 +712,14 @@ async function restartFaultedAttempt(){
    // Keep the stage lock on this marshal while resetting a faulty attempt.
    // Updating the lock in place prevents another device from claiming the stage.
    if(!current||current.status!=='running')return alert('Cannot restart safely because this device no longer holds an active '+stageName+' lock. No attempt was cleared. Refresh and check the stage.');
-   const localMatches=!!(localStageLock&&localStageLock.eventId===eventId&&localStageLock.stage===stageName&&localStageLock.driverId===driverId);
-   let expectedRun=String((localMatches&&localStageLock.runId)||p.stageLockRunId||'');
    const currentRun=String(current.runId||'');
    const sameDriver=String(current.driverId||'')===driverId;
    const sameSession=!!marshalSessionId&&String(current.marshalSessionId||'')===String(marshalSessionId);
-   const lockStart=Number(current.startedAt||0),timerStart=Number(p.startAt||0);
-   if(sameDriver&&sameSession&&lockStart&&timerStart&&Math.abs(lockStart-timerStart)<30000)expectedRun=currentRun;
-   if(!sameDriver||!sameSession||!expectedRun||currentRun!==expectedRun){
+   // Ownership is determined by the active device session + driver, not the cached
+   // runId stored with the stopped attempt. The runId may legitimately have changed
+   // during a stop/recovery flow. The transaction below rechecks the exact server
+   // runId and session atomically, so another device still cannot be interrupted.
+   if(!sameDriver||!sameSession||!currentRun){
     return alert('Cannot restart safely: this device no longer owns '+stageName+'. Another device cannot be interrupted. No attempt was cleared.');
    }
    const restartedRunId='run-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
