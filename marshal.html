@@ -567,7 +567,7 @@ let lastSpace=0,connectedToServer=false,flushing=false,savingResult=false,correc
 const clone=x=>x===undefined?null:JSON.parse(JSON.stringify(x));
 function activeEventId(){const raw=String($('eventId')?.value||localStorage.getItem('rc-points-s1-event-id')||window.RC_EVENT_ID||'rc-points-s1').trim();return /^[a-zA-Z0-9-]{1,80}$/.test(raw)?raw:'rc-points-s1'}
 // Atomic per-stage marshal lock. It is released only after Firebase confirms the result write.
-const marshalSessionId=(()=>{let id='';try{id=sessionStorage.getItem('rc-points-s1-marshal-session')||'';if(!id){id=crypto?.randomUUID?crypto.randomUUID():('marshal-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));sessionStorage.setItem('rc-points-s1-marshal-session',id)}}catch(e){id='marshal-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)}return id})();
+const marshalSessionId=(()=>{let id='';try{id=localStorage.getItem('rc-points-s1-marshal-device-session')||'';if(!id){id=crypto?.randomUUID?crypto.randomUUID():('marshal-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));localStorage.setItem('rc-points-s1-marshal-device-session',id)}}catch(e){id='marshal-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)}return id})();
 const stageLockLocalKey=eventId=>'rc-points-s1-stage-lock:'+eventId;let localStageLock=null;
 try{localStageLock=JSON.parse(localStorage.getItem(stageLockLocalKey(marshalRequestedEvent||activeEventId()))||'null')}catch(e){localStageLock=null}
 async function resolveStageLockDriver(lock,eventId){const rawId=String(lock?.driverId||'');let record=rawId?data.drivers?.[rawId]:null;if(!record&&rawId){const found=Object.entries(data.drivers||{}).find(([id,d])=>String(d?.id||'')===rawId||String(d?.driverId||'')===rawId||String(d?.num||'')===rawId);if(found)record=found[1]}if(!record&&rawId&&app&&online){try{const snap=await app.database().ref('events/'+eventId+'/drivers/'+rawId).once('value');record=snap.val()||null}catch(e){}}if(!record&&rawId&&app&&online){try{const snap=await app.database().ref('events/'+eventId+'/drivers').once('value');const all=snap.val()||{};const found=Object.entries(all).find(([id,d])=>id===rawId||String(d?.id||'')===rawId||String(d?.driverId||'')===rawId||String(d?.num||'')===rawId);if(found)record=found[1]}catch(e){}}const num=String(record?.num??lock?.driverNum??'').trim();const name=String(record?.name??lock?.driverName??'').trim();if(num||name)return {num,name,label:(num?'#'+num:'Driver')+(name?' — '+name:'')};return {num:'',name:'',label:'Driver details unavailable',detail:rawId?'Could not find a driver name for the stored reference '+rawId+'.':''}}
@@ -704,32 +704,29 @@ async function restartFaultedAttempt(){
  if(!p||p.source!=='timer'||!p.restartEligible||!p.restartExpiresAt||Date.now()>p.restartExpiresAt)return alert('The fault-start restart window has expired.');
  if(!confirm('Restart this faulty start for '+(data.drivers[p.id]?.name||'the selected driver')+' on SS'+(Number(p.s)+1)+'? The unsaved attempt and its penalty taps will be cleared. You must press START again.'))return;
  if(marshalLinkMode){
-  if(!online||!connectedToServer||!app)return alert('Cannot safely restart while Firebase is offline. Reconnect first; no attempt was cleared.');
+  if(!online||!connectedToServer||!app||!navigator.onLine)return alert('Cannot safely restart while Firebase is offline. Reconnect first; no attempt was cleared.');
   const eventId=activeEventId(),stageName='SS'+(Number(p.s)+1),driverId=String(p.id);
   const ref=app.database().ref('stageLocks/'+eventId+'/'+stageName);
   try{
-   const current=(await ref.once('value')).val();
-   // Keep ownership tied to the original browser session and driver. Do not compare
-   // against a cached runId: the timer stop/review flow can legitimately refresh it.
-   // The transaction rechecks ownership on the server before changing anything.
-   const sameDriver=!!current&&String(current.driverId||'')===driverId;
-   const sameSession=!!current&&!!marshalSessionId&&String(current.marshalSessionId||'')===String(marshalSessionId);
-   if(!current||current.status!=='running'||!sameDriver||!sameSession){
-    return alert('Cannot restart: this device no longer owns '+stageName+'. Another device cannot be interrupted. No attempt was cleared.');
-   }
-   const restartedRunId='run-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
+   const snap=await ref.once('value'),current=snap.val();
+   if(!current||current.status!=='running')return alert('Cannot restart safely because no active '+stageName+' lock was found. No attempt was cleared. Refresh and check the stage.');
+   const currentRun=String(current.runId||'');
+   const sameDriver=String(current.driverId||'')===driverId;
+   const sameSession=!!marshalSessionId&&String(current.marshalSessionId||'')===String(marshalSessionId);
+   if(!sameDriver||!sameSession||!currentRun)return alert('Cannot restart safely: this device does not own the active '+stageName+' lock. Another device cannot be interrupted. No attempt was cleared.');
+   // Keep the existing runId and ownership unchanged during fault reset. The next START
+   // will rotate runId only after this device reacquires the same lock with restartReady.
+   // This avoids a mid-restart lock identity change and prevents another device taking over.
    const restartAt=Date.now();
-   let previousRunId='';
    const tx=await ref.transaction(latest=>{
-    if(!latest||latest.status!=='running'||String(latest.driverId||'')!==driverId||!marshalSessionId||String(latest.marshalSessionId||'')!==String(marshalSessionId))return;
-    previousRunId=String(latest.runId||'');
-    if(!previousRunId)return;
-    return {...latest,runId:restartedRunId,startedAt:restartAt,restartReady:true,restartRequestedAt:restartAt,previousRunId};
+    if(!latest||latest.status!=='running'||String(latest.runId||'')!==currentRun||String(latest.driverId||'')!==driverId||String(latest.marshalSessionId||'')!==String(marshalSessionId))return;
+    return {...latest,restartReady:true,restartRequestedAt:restartAt};
    },undefined,false);
-   if(!tx.committed||!tx.snapshot.val()||String(tx.snapshot.val().runId||'')!==restartedRunId){
-    return alert('Cannot restart because Firebase did not confirm this device still owns the stage lock. No attempt was cleared. Check the connection and retry.');
+   const confirmed=tx.snapshot&&tx.snapshot.val();
+   if(!tx.committed||!confirmed||confirmed.status!=='running'||String(confirmed.runId||'')!==currentRun||String(confirmed.driverId||'')!==driverId||String(confirmed.marshalSessionId||'')!==String(marshalSessionId)||confirmed.restartReady!==true){
+    return alert('Firebase did not confirm the original stage lock remained owned by this device. No attempt was cleared. Check connection and retry.');
    }
-   localStageLock={eventId,stage:stageName,driverId,runId:restartedRunId,marshalSessionId};
+   localStageLock={eventId,stage:stageName,driverId,runId:currentRun,marshalSessionId};
    try{localStorage.setItem(stageLockLocalKey(eventId),JSON.stringify(localStageLock))}catch(e){}
   }catch(e){return alert('Firebase could not verify the stage lock. No restart was made: '+e.message)}
  }
@@ -737,7 +734,7 @@ async function restartFaultedAttempt(){
  try{localStorage.removeItem(activeRunKey);localStorage.removeItem(pendingRunKey)}catch(e){}
  const id=String(p.id),st=Number(p.s);pendingRun=null;stage=st;localStorage.setItem('rc-stage-s1',String(stage));localStorage.setItem(selectedDriverKey,id);localStorage.setItem(lastClockKey,'0');
  if(data.penalties?.[id]?.[st]){const before=clone(data.penalties[id][st]);delete data.penalties[id][st];recordHistory('penalty taps cleared after confirmed faulty-start restart',id,st,before,null);persist();sendOrQueue('penalties/'+id+'/'+st,null)}
- $('clock').textContent='00:00.00';render();$('quickPenaltyStatus').textContent='Faulty start cleared. Press START to begin a new attempt.';setMsg('Faulty start reset. The timer has NOT started; press START when ready.');
+ $('clock').textContent='00:00.00';render();$('quickPenaltyStatus').textContent='Faulty start cleared. Stage remains reserved for this marshal. Press START to begin a new attempt.';setMsg('Faulty start reset. The timer has NOT started; press START when ready.');
 }
 function setPendingRun(record){if(record.status==='dnf')soundAlarm();const keepActiveTimer=record.source==='timer'&&record.status==='finish'&&!!running;const activeStartAt=running?.startAt;const stoppedAt=Number(record.stoppedAt)||Date.now();const runStartAt=Number(record.startAt)||Number(activeStartAt)||0;if(!keepActiveTimer){try{localStorage.removeItem(activeRunKey)}catch(e){}}if(running&&!keepActiveTimer){clearInterval(tick);tick=null;running=null;releaseWake()}const next={...record,at:record.at||Date.now(),...(runStartAt?{startAt:runStartAt}:{}),...(record.source==='timer'?{stoppedAt,restartEligible:record.restartEligible===true&&runStartAt>0&&stoppedAt-runStartAt<=60000,restartExpiresAt:record.restartEligible===true?stoppedAt+60000:0,requiresStopConfirmation:true,confirmed:false}: {})};if(next.status==='dnf'){next.totalGates=gateTotalForStage(next.s);if(next.gatesCleared===undefined)delete next.gatesCleared}else{delete next.gatesCleared;delete next.totalGates}pendingRun=next;if(pendingRun.restartEligible&&pendingRun.restartExpiresAt>Date.now())setTimeout(()=>{if(pendingRun&&pendingRun.restartExpiresAt&&Date.now()>=pendingRun.restartExpiresAt)render()},Math.max(0,pendingRun.restartExpiresAt-Date.now()+50));localStorage.setItem(pendingRunKey,JSON.stringify(pendingRun));localStorage.setItem(lastClockKey,String(pendingRun.ms||0));$('clock').textContent=fmt(pendingRun.ms||0);render();syncManualOverrideInputs();$('quickPenaltyStatus').textContent=pendingRun.status==='dnf'?'DNF pending. Enter gates cleared, review penalties with the driver, CONFIRM STOP, then SAVE RESULT.':'Stop time captured. Review penalties with the driver, then CONFIRM STOP to lock the time before SAVE RESULT. You may override the pending time in Section 2 before saving.'}
 function prepareRunResult(status,ms){if(!running)return;const active=running,stoppedAt=Date.now(),elapsedBeforeStop=stoppedAt-Number(active.startAt||stoppedAt);setPendingRun({id:active.id,s:active.s,status,ms:status==='dnf'?data.cutoffs[active.s]:ms,source:'timer',startAt:active.startAt,stoppedAt,restartEligible:status==='finish'&&elapsedBeforeStop>=0&&elapsedBeforeStop<=60000,restartExpiresAt:status==='finish'&&elapsedBeforeStop>=0&&elapsedBeforeStop<=60000?stoppedAt+60000:0,stageLockRunId:active.stageLockRunId||localStageLock?.runId||null,overwriteAuthorized:!!active.overwriteAuthorized,...(status==='dnf'?{totalGates:gateTotalForStage(active.s)}:{})})}
