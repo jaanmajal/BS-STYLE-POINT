@@ -709,24 +709,22 @@ async function restartFaultedAttempt(){
   const ref=app.database().ref('stageLocks/'+eventId+'/'+stageName);
   try{
    const current=(await ref.once('value')).val();
-   // Keep the stage lock on this marshal while resetting a faulty attempt.
-   // Updating the lock in place prevents another device from claiming the stage.
-   if(!current||current.status!=='running')return alert('Cannot restart safely because this device no longer holds an active '+stageName+' lock. No attempt was cleared. Refresh and check the stage.');
-   const currentRun=String(current.runId||'');
-   const sameDriver=String(current.driverId||'')===driverId;
-   const sameSession=!!marshalSessionId&&String(current.marshalSessionId||'')===String(marshalSessionId);
-   // Ownership is determined by the active device session + driver, not the cached
-   // runId stored with the stopped attempt. The runId may legitimately have changed
-   // during a stop/recovery flow. The transaction below rechecks the exact server
-   // runId and session atomically, so another device still cannot be interrupted.
-   if(!sameDriver||!sameSession||!currentRun){
-    return alert('Cannot restart safely: this device no longer owns '+stageName+'. Another device cannot be interrupted. No attempt was cleared.');
+   // Keep ownership tied to the original browser session and driver. Do not compare
+   // against a cached runId: the timer stop/review flow can legitimately refresh it.
+   // The transaction rechecks ownership on the server before changing anything.
+   const sameDriver=!!current&&String(current.driverId||'')===driverId;
+   const sameSession=!!current&&!!marshalSessionId&&String(current.marshalSessionId||'')===String(marshalSessionId);
+   if(!current||current.status!=='running'||!sameDriver||!sameSession){
+    return alert('Cannot restart: this device no longer owns '+stageName+'. Another device cannot be interrupted. No attempt was cleared.');
    }
    const restartedRunId='run-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
    const restartAt=Date.now();
+   let previousRunId='';
    const tx=await ref.transaction(latest=>{
-    if(!latest||latest.status!=='running'||String(latest.runId||'')!==currentRun||String(latest.driverId||'')!==driverId||String(latest.marshalSessionId||'')!==String(marshalSessionId))return;
-    return {...latest,runId:restartedRunId,startedAt:restartAt,restartReady:true,restartRequestedAt:restartAt,previousRunId:currentRun};
+    if(!latest||latest.status!=='running'||String(latest.driverId||'')!==driverId||!marshalSessionId||String(latest.marshalSessionId||'')!==String(marshalSessionId))return;
+    previousRunId=String(latest.runId||'');
+    if(!previousRunId)return;
+    return {...latest,runId:restartedRunId,startedAt:restartAt,restartReady:true,restartRequestedAt:restartAt,previousRunId};
    },undefined,false);
    if(!tx.committed||!tx.snapshot.val()||String(tx.snapshot.val().runId||'')!==restartedRunId){
     return alert('Cannot restart because Firebase did not confirm this device still owns the stage lock. No attempt was cleared. Check the connection and retry.');
