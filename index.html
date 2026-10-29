@@ -367,4 +367,35 @@ document.addEventListener('keydown',e=>{
  const target=running?$('stop'):$('start');
  if(!target.disabled)target.click();
 });
-$('retrySync').onclick=()=>{if(!online||!connectedToServer){setMsg('Connect to Firebase and wait for ONLINE before retrying pending uploads.',true);return}flushPending()};$('disconnect').onclick=async()=>{const count=eventPendingCount(activeEventId());if(count&&!confirm('There are '+count+' unsynchronized change(s). They will remain in this browser and upload only after reconnecting to Event ID '+activeEventId()+'. Disconnect anyway?'))return;if(dbRef&&sub)dbRef.off('value',sub);online=false;connectedToServer=false;dbRef=null;sub=null;if(auth)await auth.signOut();updateConnectionIndicator();showConnectionToast('offline','Disconnected','You are now offline. Local data is retained.',2500);setMsg(count?'Disconnected. '+count+' change(s) remain queued locally for Event ID '+activeEventId()+'.':'Disconnected; local copy retained.');updateSyncHealth()};window.addEventListener('online',()=>{updateConnectionIndicator();if(online)flushPending()});window.addEventListener('offline',()=>{updateConnectionIndicator();if(hadFirebaseConnection)notifyFirebaseDisconnected();updateSyncHealth()});window.addEventListener('beforeunload',e=>{if(hasPendingForEvent(activeEventId())||pendingRun||running){e.preventDefault();e.returnValue='';}});updateSafetyStatus();clearCorrectionInputs();render();updateSyncHealth();if(running){acquireWake();tick=setInterval(updateClock,40);updateClock()}if(pendingRun)syncManualOverrideInputs()})();</script></body></html>
+$('retrySync').onclick=()=>{if(!online||!connectedToServer){setMsg('Connect to Firebase and wait for ONLINE before retrying pending uploads.',true);return}flushPending()};$('disconnect').onclick=async()=>{const count=eventPendingCount(activeEventId());if(count&&!confirm('There are '+count+' unsynchronized change(s). They will remain in this browser and upload only after reconnecting to Event ID '+activeEventId()+'. Disconnect anyway?'))return;if(dbRef&&sub)dbRef.off('value',sub);online=false;connectedToServer=false;dbRef=null;sub=null;if(auth)await auth.signOut();updateConnectionIndicator();showConnectionToast('offline','Disconnected','You are now offline. Local data is retained.',2500);setMsg(count?'Disconnected. '+count+' change(s) remain queued locally for Event ID '+activeEventId()+'.':'Disconnected; local copy retained.');updateSyncHealth()};window.addEventListener('online',()=>{updateConnectionIndicator();if(online)flushPending()});window.addEventListener('offline',()=>{updateConnectionIndicator();if(hadFirebaseConnection)notifyFirebaseDisconnected();updateSyncHealth()});window.addEventListener('beforeunload',e=>{if(hasPendingForEvent(activeEventId())||pendingRun||running){e.preventDefault();e.returnValue='';}});updateSafetyStatus();clearCorrectionInputs();render();updateSyncHealth();if(running){acquireWake();tick=setInterval(updateClock,40);updateClock()}if(pendingRun)syncManualOverrideInputs()})();
+/* Automatic uppercase for user-entered words. Keep technical identifiers, credentials, URLs and time fields unchanged. */
+(function installUppercaseWordInputs(){
+  const excludedIds = new Set([
+    'eventId','email','password','apiKey','authDomain','databaseURL','projectId',
+    'manualTime','editTime','adminPin','clearRacePassword','lateDriverNum',
+    'num','dnfGatesCleared','penaltyPoints','editGatesCleared'
+  ]);
+  function shouldUppercase(el){
+    if(!el || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return false;
+    if(el.disabled || el.readOnly) return false;
+    const type = (el.type || 'text').toLowerCase();
+    if(['password','email','url','number','tel','date','time','datetime-local','file','hidden','checkbox','radio','range','color'].includes(type)) return false;
+    if(excludedIds.has(el.id)) return false;
+    if(el.matches('[data-preserve-case], [data-technical-input]')) return false;
+    return type === 'text' || type === 'search' || el instanceof HTMLTextAreaElement;
+  }
+  document.addEventListener('input', function(event){
+    const el = event.target;
+    if(!shouldUppercase(el)) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const upper = el.value.toLocaleUpperCase('en-US');
+    if(el.value === upper) return;
+    el.value = upper;
+    try { if(start !== null && end !== null) el.setSelectionRange(start, end); } catch (_) {}
+  }, true);
+  const style = document.createElement('style');
+  style.textContent = 'input[type="text"],input[type="search"],textarea{ text-transform:uppercase; } input#eventId,input#manualTime,input#editTime,input#apiKey,input#authDomain,input#databaseURL,input#projectId{ text-transform:none; }';
+  document.head.appendChild(style);
+})();
+</script></body></html>
