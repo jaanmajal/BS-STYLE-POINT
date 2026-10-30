@@ -1,13 +1,78 @@
-# BS-STYLE POINT RC TIME ATTACK S1 v27.5.13
+# BS-STYLE POINT RC TIME ATTACK - v27.6.0 Dry-Run Release
 
-## Changes
-- Added an Event-ID-aware Marshal Race Control link under the public results link in the organiser Firebase connection panel.
-- Added a Copy marshal link button to make sharing with marshals easier.
-- Marshal link format: `marshal.html?event=<EventID>`; the page preselects the Event ID from the link.
-- If a shared link points to an event that does not exist online while the browser has local records, the confirmation explicitly warns and creates an empty event rather than copying another event's local driver/results data.
-- Optimized `marshal.html` for mobile so Race Control, timer, start/stop/DNF/save controls and all penalty counters are compact and visible together where practical.
-- Kept Manual Stopwatch Input visible below Race Control, collapsed by default.
-- Existing scoring, penalty, DNF, correction and Firebase logic retained.
+This is a coordinated dry-run package for the `jaanmajal/BS-STYLE-POINT` GitHub Pages project. It is prepared from the latest saved organiser, marshal and public-results source files. It has **not** been uploaded to GitHub or deployed to the live website.
 
-## Deploy
-Upload all files in this folder to the root of the existing GitHub Pages repository and commit. Test on the actual phone and verify Event ID selection before using it in competition.
+## Package files
+
+- `index.html` - organiser race control
+- `marshal.html` - event-specific marshal race control
+- `results.html` - public live results
+- `firebase-config.js` - existing Firebase web-app configuration with an isolated dry-run Event ID
+- `firebase-locking-rules.json` - proposed hardened Realtime Database rules
+- `VALIDATION_REPORT.md` - automated checks and remaining live-test requirements
+- `RULES_SCORING_v2.md` and `RULES_SCORING_v2.pdf` - final scoring rules for this release
+
+Keep the existing `logo.jpg` and `favicon.png` in the repository root; these pages reference them.
+
+## Important: dry-run isolation
+
+The package sets `RC_DRY_RUN_MODE = true` and defaults to Event ID `bs1-dry-run-20261030`. In dry-run mode, this configured ID takes priority over an older Event ID saved in the organiser browser, so it does not silently reconnect to the existing `bs1` event. If the dry-run event is created empty, its four-stage and final-penalty defaults are used rather than copying an older local event setup. The Firebase project remains the same. Confirm the Event ID shown in organiser control before connecting any device.
+
+## Main changes
+
+1. New events default to four stages and 10 gates per stage.
+2. Final penalty preset: Touch 10 points, Special Gate 5 points, Outrack 3 points; Jump Gate is DNF.
+3. The organiser page includes **Apply final penalty preset** for existing events. This changes future taps only; saved penalty tap values remain frozen.
+4. DNF points now scale with gates cleared and can be zero at zero gates. Only FINISH receives the Gate-1 floor.
+5. Overall and stage tie-breakers consistently place FINISH above DNF when points tie.
+6. Marshal links use an anonymous Firebase session registered against the event token. The database rules restrict marshal writes to results and penalties for the stage/driver held by that marshal's active lock.
+7. Closing marshal access disables active marshal sessions for that event.
+8. If internet drops after a stage lock is acquired, the active run can continue locally and queue its result. A new stage cannot be claimed offline; the lock is released only after Firebase confirms the queued result.
+9. The marshal view does not request an admin PIN and cannot access the destructive Clear All Race Data operation. The organiser-side PIN/reset prompts are UI workflow guards only; Firebase rules are the actual authorization boundary.
+
+## Switching from dry run to the real event
+
+Before the real competition, set `RC_DRY_RUN_MODE = false` and set `RC_EVENT_ID` in `firebase-config.js` to the approved production Event ID. Confirm the organiser page shows that exact ID before connecting. Do not reuse the dry-run Event ID for the real event.
+
+## Deployment order
+
+1. In the current organiser page, export a JSON backup for the existing event. Keep the backup somewhere safe.
+2. Upload the four updated files (`index.html`, `marshal.html`, `results.html`, `firebase-config.js`) to the repository root together. Keep `logo.jpg` and `favicon.png` in place.
+3. In Firebase Authentication, confirm **Anonymous** sign-in is enabled. The organiser still signs in with the authorised email/password.
+4. In Firebase Realtime Database, review `firebase-locking-rules.json`. Replace `ara1@gmail.com` in the rules if the authorised organiser login is different.
+5. Apply the rules only after the updated pages are deployed together. The previous broad rules allow any authenticated user to write event data; the new rules intentionally restrict that access.
+6. Open organiser control and confirm the Event ID is `bs1-dry-run-20261030`. Connect and create the empty event if prompted.
+7. Apply the final penalty preset if the dry-run event already contains older shared rules. Verify the displayed values before racing.
+8. Open the event-specific marshal link generated by organiser control. Enter the marshal name. Confirm no admin PIN is requested.
+9. Open `results.html?event=bs1-dry-run-20261030` on a spectator device.
+
+**Do not apply the new database rules to the current live deployment while it is still running the old marshal code.** Deploy the coordinated pages first, then apply the matching rules. If there is a deployment gap, marshal writes may be rejected until both sides are updated.
+
+## Dry-run checklist
+
+- [ ] Organiser connects to the dry-run Event ID and shows ONLINE.
+- [ ] Register at least five test drivers; verify numbers start at 101.
+- [ ] Draw and lock SS1 and SS2.
+- [ ] Open the event-specific marshal link on two phones.
+- [ ] Confirm one phone cannot take over a stage already locked by the other.
+- [ ] Verify Touch = 10, Special Gate = 5 and Outrack = 3 points per tap.
+- [ ] Verify Jump Gate uses DNF and requires gate progress.
+- [ ] Test DNF at 0 gates, partial gates and all gates.
+- [ ] Verify a FINISH result cannot fall below the Gate-1 floor.
+- [ ] Verify FINISH ranks above DNF when stage points tie.
+- [ ] Save a result and confirm the public results page updates.
+- [ ] Close marshal access and confirm the active marshal session is blocked.
+- [ ] Reopen marshal access, refresh the link and confirm it can connect again.
+- [ ] Temporarily disconnect internet after a stage lock is acquired; finish the run, confirm it queues locally, reconnect, and verify Firebase confirms the result and releases the stage lock.
+- [ ] Export a JSON backup and verify the event contains the expected four stages and penalty rules.
+
+## Known checks and limitations
+
+- Static JavaScript syntax, HTML IDs and rules JSON are checked in the package build process; this is not a substitute for live Firebase emulator or multi-phone testing.
+- Historical DNF records missing `gatesCleared` need organiser review and correction. They are not silently migrated.
+- The old `BS_Style_Point_RC_Time_Attack_Rules_Scoring_v1.pdf` remains in the repository for archive purposes but is superseded by `RULES_SCORING_v2.md`. Do not hand out the v1 PDF for this dry run.
+- Firebase rules are project-wide. Review the organiser email and deploy them only with the matching updated pages.
+
+## Version
+
+`v27.6.0` - coordinated dry-run preparation, 30 October 2026.

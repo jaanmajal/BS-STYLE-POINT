@@ -1,0 +1,82 @@
+{
+  "rules": {
+    "events": {
+      "$eventId": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'ara1@gmail.com'",
+        "drivers": {
+          ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+        },
+        "cutoffs": {
+          ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+        },
+        "gateTotals": {
+          ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+        },
+        "penaltyRules": {
+          ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+        },
+        "drawOrders": {
+          ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+        },
+        "drawLocks": {
+          ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+        },
+        "lateEntries": {
+          ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+        },
+        "results": {
+          "$driverId": {
+            ".write": "auth != null && auth.token.email == 'ara1@gmail.com'",
+            "$stage": {
+              ".write": "auth != null && (auth.token.email == 'ara1@gmail.com' || (auth.token.firebase.sign_in_provider == 'anonymous' && root.child('marshalAccessControl').child($eventId).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('token').val() == root.child('marshalAccessControl').child($eventId).child('token').val() && root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('driverId').val() == $driverId && root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('stageKey').val() == $stage && root.child('stageLocks').child($eventId).child(root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('stageName').val()).child('authUid').val() == auth.uid && root.child('stageLocks').child($eventId).child(root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('stageName').val()).child('driverId').val() == $driverId))"
+            }
+          }
+        },
+        "penalties": {
+          "$driverId": {
+            ".write": "auth != null && auth.token.email == 'ara1@gmail.com'",
+            "$stage": {
+              ".write": "auth != null && (auth.token.email == 'ara1@gmail.com' || (auth.token.firebase.sign_in_provider == 'anonymous' && root.child('marshalAccessControl').child($eventId).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('token').val() == root.child('marshalAccessControl').child($eventId).child('token').val() && root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('driverId').val() == $driverId && root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('stageKey').val() == $stage && root.child('stageLocks').child($eventId).child(root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('stageName').val()).child('authUid').val() == auth.uid && root.child('stageLocks').child($eventId).child(root.child('marshalSessions').child($eventId).child(auth.uid).child('activeLock').child('stageName').val()).child('driverId').val() == $driverId))"
+            }
+          }
+        }
+      }
+    },
+    "marshalAccessControl": {
+      "$eventId": {
+        ".read": "auth != null && auth.token.email == 'ara1@gmail.com'",
+        ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+      }
+    },
+    "marshalSessions": {
+      "$eventId": {
+        ".read": "auth != null && auth.token.email == 'ara1@gmail.com'",
+        ".write": "auth != null && auth.token.email == 'ara1@gmail.com'",
+        "$uid": {
+          ".read": "auth != null && (auth.token.email == 'ara1@gmail.com' || auth.uid == $uid)",
+          ".write": "auth != null && (auth.token.email == 'ara1@gmail.com' || (auth.token.firebase.sign_in_provider == 'anonymous' && auth.uid == $uid && root.child('marshalAccessControl').child($eventId).child('enabled').val() == true && newData.child('token').val() == root.child('marshalAccessControl').child($eventId).child('token').val()))",
+          "activeLock": {
+            ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && auth.uid == $uid && root.child('marshalAccessControl').child($eventId).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child($uid).child('token').val() == root.child('marshalAccessControl').child($eventId).child('token').val()"
+          }
+        }
+      }
+    },
+    "controlSessions": {
+      "$eventId": {
+        ".read": "auth != null && auth.token.email == 'ara1@gmail.com'",
+        ".write": "auth != null && auth.token.email == 'ara1@gmail.com'"
+      }
+    },
+    "stageLocks": {
+      "$eventId": {
+        ".read": "auth != null && (auth.token.email == 'ara1@gmail.com' || (auth.token.firebase.sign_in_provider == 'anonymous' && root.child('marshalAccessControl').child($eventId).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('token').val() == root.child('marshalAccessControl').child($eventId).child('token').val()))",
+        ".write": "auth != null && auth.token.email == 'ara1@gmail.com'",
+        "$stage": {
+          ".read": "auth != null && (auth.token.email == 'ara1@gmail.com' || (auth.token.firebase.sign_in_provider == 'anonymous' && root.child('marshalAccessControl').child($eventId).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('token').val() == root.child('marshalAccessControl').child($eventId).child('token').val()))",
+          ".write": "auth != null && (auth.token.email == 'ara1@gmail.com' || (auth.token.firebase.sign_in_provider == 'anonymous' && root.child('marshalAccessControl').child($eventId).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('enabled').val() == true && root.child('marshalSessions').child($eventId).child(auth.uid).child('token').val() == root.child('marshalAccessControl').child($eventId).child('token').val() && ((!data.exists() && newData.child('authUid').val() == auth.uid) || (data.child('authUid').val() == auth.uid && (!newData.exists() || newData.child('authUid').val() == auth.uid)))))"
+        }
+      }
+    }
+  }
+}
