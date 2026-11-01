@@ -838,7 +838,7 @@ function showStageLockConflictModal(stageName,lock,driverId,driver){
   const logoWrap=el('div','');logoWrap.style.cssText='text-align:center;padding:16px 20px 2px';
   const logo=el('img','');logo.src='logo.jpg';logo.alt='TEC-ARTS CRAWLER logo';logo.style.cssText='display:block;width:66px;height:66px;object-fit:contain;margin:0 auto 4px;border-radius:12px';logo.onerror=()=>logo.remove();logoWrap.append(logo);modal.append(logoWrap);
   const top=el('div','race-modal-top');top.append(el('div','race-modal-icon','🔒'));
-  const heading=el('div','race-modal-heading');heading.append(el('div','race-modal-kicker','STAGE LOCK · v27.7.2'));
+  const heading=el('div','race-modal-heading');heading.append(el('div','race-modal-kicker','STAGE LOCK · v27.7.3'));
   const title=el('h2','race-modal-title','Stage already in use');title.id='stageLockConflictTitle';heading.append(title);
   heading.append(el('p','race-modal-subtitle',stageName+' is currently reserved by another marshal.'));top.append(heading);
   const closeX=el('button','race-modal-close','×');closeX.type='button';closeX.setAttribute('aria-label','Close stage lock notice');top.append(closeX);modal.append(top);
@@ -864,100 +864,135 @@ function showStageLockConflictModal(stageName,lock,driverId,driver){
   backdrop.append(modal);backdrop.addEventListener('click',e=>{if(e.target===backdrop&&!busy)finish(false)});
   document.body.append(backdrop);document.addEventListener('keydown',onKey);
   pin.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();unlock.click()}});
-  // Matches the Main Control reset: read the current lock, confirm the stage,
-  // then remove ONLY the identical lock via a Firebase transaction. PIN proof
-  // is validated server-side by Rules v7; the open marshal gate is mandatory.
+  // v27.7.3: same exact-lock reset transaction as Main Control, authorized
+  // through the limited marshal proof in Firebase Rules v7. Never bypasses a
+  // closed marshal link. Errors name the failed Firebase operation.
+  const describeError=(step,e)=>{
+    const code=String(e?.code||e?.name||'ERROR').toUpperCase();
+    const detail=String(e?.message||e||'unknown error');
+    if(/PERMISSION_DENIED|PERMISSION DENIED/.test(code+' '+detail)){
+      return step+' — PERMISSION_DENIED. The marshal Firebase account is not authorized for this operation. Confirm Firebase Realtime Database Rules v7 is published (not Firestore Rules), and Main Control has the marshal link OPEN.';
+    }
+    return step+' — '+code+': '+detail;
+  };
   unlock.onclick=async()=>{
-   if(busy)return;
-   const submittedPin=pin.value;pin.value='';
-   if(!/^\d{6}$/.test(submittedPin)){
-    feedback.textContent='Enter the 6-digit organiser PIN. Stage remains locked.';pin.focus();return;
-   }
-   if(!online||!connectedToServer||!app||navigator.onLine===false){
-    feedback.textContent='Firebase is offline. Stage cannot be unlocked until connection returns.';return;
-   }
-   // Fast wrong-PIN feedback; Firebase Rules separately validates the digest.
-   const expectedPinHash='8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
-   let pinHash;
-   try{
-    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(submittedPin));
-    pinHash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
-   }catch(e){feedback.textContent='Secure PIN check unavailable in this browser. Use HTTPS and try again.';return;}
-   if(pinHash!==expectedPinHash){feedback.textContent='Incorrect organiser PIN. Stage remains locked.';pin.focus();return;}
-   busy=true;unlock.disabled=true;retry.disabled=true;close.disabled=true;
-   let ticketRef=null,ticketWritten=false;
-   try{
+    if(busy)return;
+    const entered=pin.value;
+    pin.value='';
+    if(!/^\d{6}$/.test(entered)){
+      feedback.textContent='Enter the 6-digit organiser PIN.';pin.focus();return;
+    }
+    if(!online||!connectedToServer||!app||navigator.onLine===false){
+      feedback.textContent='OFFLINE: Connect to Firebase first. No lock was changed.';return;
+    }
+    let digest;
+    try{
+      const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(entered));
+      digest=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
+    }catch(e){feedback.textContent='PIN check unavailable. Open the HTTPS marshal link in Safari or Chrome.';return;}
+    if(digest!=='8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'){
+      feedback.textContent='INCORRECT PIN. Stage remains locked.';pin.focus();return;
+    }
+    busy=true;unlock.disabled=true;retry.disabled=true;close.disabled=true;closeX.disabled=true;
+    let proofRef=null,proofWritten=false;
     const eventId=activeEventId();
-    feedback.textContent='Checking marshal link and Firebase session…';
-    // Main Control may close this link at any time. A PIN never bypasses closure.
-    if(!await verifyMarshalSessionOnline())throw new Error('MARSHAL LINK CLOSED or session not verified. Ask Main Control to reopen marshal access.');
-    const enabled=(await app.database().ref('marshalAccessControl/'+eventId+'/enabled').once('value')).val();
-    if(enabled!==true){showMarshalAccessBlocked('Main Control closed marshal access. PIN cannot override this.');throw new Error('MARSHAL LINK CLOSED. Reopen it from Main Control.');}
-    feedback.textContent='Reading the exact lock from Firebase…';
-    const lockRef=app.database().ref('stageLocks/'+eventId+'/'+stageName);
-    const latest=(await lockRef.once('value')).val();
-    if(!latest){feedback.textContent='Stage is already unlocked. Checking again…';finish(true);return;}
-    // Main Control uses an exact snapshot compare; do the same here.
-    if(stableStringify(latest)!==stableStringify(lock)){
-     feedback.textContent='Stage lock changed after this popup opened. Close and retry to inspect the new lock.';return;
+    const show=(step,extra='')=>{feedback.textContent=step+(extra?' — '+extra:'');};
+    try{
+      show('1/5 Verifying marshal access');
+      let sessionOK=false;
+      try{sessionOK=await verifyMarshalSessionOnline()}
+      catch(e){throw Error(describeError('SESSION CHECK',e))}
+      if(!sessionOK)throw Error('MARSHAL LINK CLOSED or session invalid. Ask Main Control to open the marshal access link.');
+      let enabled;
+      try{enabled=(await app.database().ref('marshalAccessControl/'+eventId+'/enabled').once('value')).val()}
+      catch(e){throw Error(describeError('MARSHAL ACCESS CHECK',e))}
+      if(enabled!==true){
+        showMarshalAccessBlocked('Main Control closed marshal access. PIN cannot override the closed link.');
+        throw Error('MARSHAL LINK CLOSED. PIN cannot override this.');
+      }
+      show('2/5 Reading Firebase stage lock');
+      const lockRef=app.database().ref('stageLocks/'+eventId+'/'+stageName);
+      let exactLock;
+      try{exactLock=(await lockRef.once('value')).val()}
+      catch(e){throw Error(describeError('STAGE LOCK READ',e))}
+      if(!exactLock){
+        setMsg(stageName+' is already unlocked. Checking stage again.',false);
+        finish(true);return;
+      }
+      // The displayed lock may be stale after other devices update the run.
+      // Re-read immediately and display the CURRENT occupant before resetting.
+      const changed=stableStringify(exactLock)!==stableStringify(lock);
+      const lockedDriverId=String(exactLock.driverId||exactLock.driver||exactLock.id||'');
+      const stageIndex=Number(stageName.replace('SS',''))-1;
+      let resultConfirmed=false;
+      if(lockedDriverId&&Number.isInteger(stageIndex)&&stageIndex>=0){
+        try{
+          const saved=(await app.database().ref('events/'+eventId+'/results/'+lockedDriverId+'/'+stageIndex).once('value')).val();
+          resultConfirmed=!!(saved&&['finish','dnf','dns'].includes(String(saved.status||'').toLowerCase()));
+        }catch(e){throw Error(describeError('SAVED RESULT CHECK',e))}
+      }
+      const runIsActive=String(exactLock.status||'').toLowerCase()==='running';
+      let message='Reset stage '+eventId+' / '+stageName+'?\n\n'+
+        'Current driver: '+(exactLock.driverName||lockedDriverId||'Unknown')+'\n'+
+        'Current marshal: '+(exactLock.marshalName||'Unknown');
+      if(changed)message+='\n\nNOTICE: This lock changed since the popup opened. The CURRENT lock shown above will be reset.';
+      if(runIsActive&&!resultConfirmed)message+='\n\nWARNING: Firebase has NOT confirmed a saved result for this run. Check that nobody is racing and save/export any pending results.';
+      else if(resultConfirmed)message+='\n\nA matching saved result exists. Saved results will NOT be deleted.';
+      else message+='\n\nNo matching saved result was found. Verify the current marshal is finished.';
+      if(!confirm(message)){show('Cancelled. Lock unchanged.');return;}
+      if(runIsActive&&!resultConfirmed&&!confirm('FINAL CHECK: No vehicle is running '+stageName+'. Release this lock even though the result may be unsaved?')){
+        show('Cancelled. Lock unchanged.');return;
+      }
+      // Rules v7 require a short-lived PIN proof. We must not attempt the
+      // privileged reset directly with an anonymous Firebase session.
+      show('3/5 Authorizing admin PIN with Firebase');
+      proofRef=app.database().ref('stageResetAuthorizations/'+eventId+'/'+stageName);
+      const runId=exactLock.runId===null||exactLock.runId===undefined?'__LEGACY__':exactLock.runId;
+      const proof={authUid:String(auth?.currentUser?.uid||''),runId,pinHash:digest,issuedAt:firebase.database.ServerValue.TIMESTAMP};
+      if(!proof.authUid)throw Error('FIREBASE SIGN-IN MISSING: Reconnect the marshal session.');
+      try{await proofRef.set(proof);proofWritten=true;}
+      catch(e){throw Error(describeError('PIN AUTHORIZATION WRITE',e))}
+      // Verify that the PIN proof was actually stored on the server and matches
+      // our current anonymous session before trying the protected deletion.
+      let storedProof;
+      try{storedProof=(await proofRef.once('value')).val()}
+      catch(e){throw Error(describeError('PIN AUTHORIZATION READ',e))}
+      if(!storedProof||storedProof.authUid!==proof.authUid||storedProof.pinHash!==digest||String(storedProof.runId)!==String(runId)){
+        throw Error('PIN PROOF NOT CONFIRMED. The lock was NOT reset. Retry after checking Firebase synchronization.');
+      }
+      show('4/5 Resetting stage lock (same transaction as Main Control)');
+      let tx;
+      try{
+        tx=await lockRef.transaction(current=>{
+          // Never clear a different run that acquired the stage meanwhile.
+          if(!current||stableStringify(current)!==stableStringify(exactLock))return;
+          return null;
+        },undefined,false);
+      }catch(e){throw Error(describeError('STAGE LOCK RESET WRITE',e))}
+      if(!tx.committed){
+        throw Error('STAGE LOCK CHANGED during the reset. Nothing was deleted. Close this popup and retry using the current driver.');
+      }
+      show('5/5 Confirming stage is unlocked');
+      let remaining;
+      try{remaining=(await lockRef.once('value')).val()}
+      catch(e){throw Error(describeError('STAGE LOCK VERIFY',e))}
+      if(remaining){throw Error('RESET NOT CONFIRMED. Firebase still has a stage lock. A different device may have claimed it again.');}
+      if(localStageLock&&localStageLock.eventId===eventId&&localStageLock.stage===stageName&&String(localStageLock.runId||'')===String(exactLock.runId||'')){
+        localStageLock=null;try{localStorage.removeItem(stageLockLocalKey(eventId))}catch(e){}
+      }
+      setMsg('ADMIN FORCE UNLOCK SUCCESS: '+eventId+' / '+stageName+'. Retrying stage claim. Results were not deleted.',false);
+      finish(true);
+    }catch(e){
+      const message=String(e?.message||e);
+      show('UNLOCK FAILED',message);
+      setMsg('Stage '+stageName+' unlock failed: '+message,true);
+    }finally{
+      if(proofWritten&&proofRef){
+        try{await proofRef.remove()}
+        catch(e){console.warn('Could not remove expiring stage reset proof:',e?.code||e?.message||e)}
+      }
+      busy=false;unlock.disabled=false;retry.disabled=false;close.disabled=false;closeX.disabled=false;
     }
-    const stageIndex=Number(stageName.replace('SS',''))-1;
-    const lockedDriverId=String(latest.driverId||latest.driver||latest.id||'');
-    let resultConfirmed=false;
-    if(lockedDriverId&&Number.isInteger(stageIndex)&&stageIndex>=0){
-     const resultSnap=await app.database().ref('events/'+eventId+'/results/'+lockedDriverId+'/'+stageIndex).once('value');
-     const result=resultSnap.val();
-     resultConfirmed=!!(result&&['finish','dnf','dns'].includes(String(result.status||'').toLowerCase()));
-    }
-    const isRunning=String(latest.status||'').toLowerCase()==='running';
-    let message='Reset the stage lock for '+eventId+' / '+stageName+'?\n\nLocked driver: '+(driver.label||latest.driverName||lockedDriverId||'Unknown')+'\nMarshal: '+owner;
-    if(isRunning&&!resultConfirmed){
-     message+='\n\nWARNING: Firebase has no confirmed saved result. Proceed ONLY after physically checking that the stage is not in use. Unsaved/offline results may be lost.';
-    }else if(resultConfirmed){
-     message+='\n\nA matching saved result exists. Only the stage lock will be removed; saved results remain unchanged.';
-    }else{
-     message+='\n\nNo confirmed saved result was found. Check the previous marshal and pending uploads before continuing.';
-    }
-    if(!confirm(message)){feedback.textContent='Unlock cancelled. Stage remains locked.';return;}
-    if(isRunning&&!resultConfirmed&&!confirm('FINAL CHECK: Nobody is running '+stageName+'. You accept the risk of releasing its unsaved lock?')){
-     feedback.textContent='Unlock cancelled. Stage remains locked.';return;
-    }
-    // A rules probe distinguishes a missing v7 deployment from a wrong PIN.
-    feedback.textContent='Verifying Firebase Rules v7…';
-    try{await app.database().ref('stageUnlockV7Check/'+eventId).once('value');}
-    catch(e){throw new Error('RULES V7 NOT ACTIVE or MARSHAL LINK CLOSED ('+String(e?.code||e?.message||e)+'). Publish firebase_rules_v7.json in Firebase Realtime Database → Rules.');}
-    // Recheck before writing the time-limited proof. Rules also check closure
-    // atomically on the proof write AND on the actual lock deletion.
-    if(!await verifyMarshalSessionOnline())throw new Error('MARSHAL LINK CLOSED. Main Control must reopen access.');
-    ticketRef=app.database().ref('stageResetAuthorizations/'+eventId+'/'+stageName);
-    const runId=latest.runId===null||latest.runId===undefined?'__LEGACY__':latest.runId;
-    const ticket={authUid:String(auth?.currentUser?.uid||''),runId,pinHash,issuedAt:firebase.database.ServerValue.TIMESTAMP};
-    feedback.textContent='Authorizing PIN with Firebase…';
-    try{await ticketRef.set(ticket);ticketWritten=true;}
-    catch(e){throw new Error('PIN AUTHORIZATION REJECTED ('+String(e?.code||e?.message||e)+'). Check Rules v7 and whether the marshal link is open.');}
-    feedback.textContent='Releasing the exact stage lock (Main Control method)…';
-    let tx;
-    try{tx=await lockRef.transaction(current=>{
-     if(!current||stableStringify(current)!==stableStringify(latest))return;
-     return null;
-    },undefined,false);}
-    catch(e){throw new Error('STAGE RELEASE REJECTED ('+String(e?.code||e?.message||e)+'). Firebase denied the lock reset or marshal access was closed.');}
-    if(!tx.committed){feedback.textContent='Lock changed while resetting. Nothing was removed; close and retry.';return;}
-    const verified=await lockRef.once('value');
-    if(verified.exists())throw new Error('Firebase did not confirm the stage lock was released.');
-    // The old marshal session must no longer be mistaken for the new stage owner.
-    if(localStageLock&&localStageLock.eventId===eventId&&localStageLock.stage===stageName&&String(localStageLock.runId||'')===String(latest.runId||'')){
-     localStageLock=null;try{localStorage.removeItem(stageLockLocalKey(eventId));}catch(e){}
-    }
-    setMsg('ADMIN FORCE UNLOCK: '+eventId+' / '+stageName+' released using Main Control method. Results unchanged.');
-    feedback.textContent='Stage unlocked on Firebase. Retrying stage acquisition…';
-    finish(true);
-   }catch(e){feedback.textContent='Unable to unlock stage: '+String(e?.message||e);setMsg(feedback.textContent,true);}
-   finally{
-    // Cleanup is best-effort; Firebase proof expires automatically if access closes.
-    if(ticketWritten&&ticketRef){try{await ticketRef.remove();}catch(e){console.warn('PIN authorization cleanup not permitted; proof expires automatically.',e);}}
-    busy=false;unlock.disabled=false;retry.disabled=false;close.disabled=false;
-   }
   };
   retry.focus();
  });
