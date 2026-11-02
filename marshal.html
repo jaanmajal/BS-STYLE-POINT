@@ -802,6 +802,48 @@ body.marshal-view #bs28MarshalPanel.bs28-rotation-below{
  #bs28RotationDetails .bs28-rotation-body{padding:3px 11px 13px;}
 }
 </style>
+
+<style id="bs2854-auto-draw-popup-css">
+.bs-draw-pop{position:fixed;inset:0;z-index:100002;background:rgba(2,7,19,.88);display:flex;align-items:center;
+ justify-content:center;padding:13px;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.bs-draw-dialog{width:min(100%,450px);max-height:min(92vh,92dvh);overflow:auto;overscroll-behavior:contain;
+ background:linear-gradient(160deg,#162d4b 0%,#0f1b31 86%);border:2px solid #55cbb2;
+ border-radius:20px;box-shadow:0 22px 68px #000a,0 0 0 3px #0b443b55;color:#f5f9ff;padding:18px;
+ text-align:center;font-family:inherit}
+.bs-draw-dialog button{font-family:inherit}
+.bs-draw-dialog .bs-draw-eyebrow{font-size:11px;letter-spacing:.12em;font-weight:900;color:#b4ffe0;text-transform:uppercase;margin:3px 0 8px}
+.bs-draw-dialog .bs-draw-title{font-size:clamp(21px,5vw,28px);font-weight:950;margin:0 0 8px;line-height:1.16}
+.bs-draw-stagebar{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #447aaf;
+ border-radius:12px;background:#0c2440;padding:13px 8px;margin:10px 0 13px;font-weight:900}
+.bs-draw-stagebar .bs-draw-stage{font-size:clamp(24px,7vw,34px);color:#fff}
+.bs-draw-stagebar .bs-draw-group{font-size:15px;color:#a7f3d0}
+.bs-draw-wheel{padding:19px 10px;border:1px solid #59769a;border-radius:13px;background:#172a46;margin:12px 0;min-height:106px;
+ display:flex;flex-direction:column;justify-content:center;gap:10px;transition:border-color .2s,background .2s}
+.bs-draw-wheel .bs-draw-wheel-label{font-size:12px;color:#d3e8ff;font-weight:800;letter-spacing:.08em}
+.bs-draw-wheel .bs-draw-wheel-name{font-size:clamp(19px,6vw,28px);font-weight:900;line-height:1.18;overflow-wrap:anywhere;color:#fff}
+.bs-draw-pop:not(.bs-draw-revealed) .bs-draw-wheel{border-color:#eab45e;animation:bs-draw-pulse .32s ease-in-out infinite alternate}
+.bs-draw-pop.bs-draw-revealed .bs-draw-wheel{border-color:#42d49c;background:#10372e;animation:none}
+@keyframes bs-draw-pulse{from{box-shadow:inset 0 0 0 0 #f8b5481a}to{box-shadow:inset 0 0 20px 2px #f8b54844}}
+.bs-draw-reveal{display:none;text-align:left;margin-top:10px}
+.bs-draw-pop.bs-draw-revealed .bs-draw-reveal{display:block}
+.bs-draw-first{display:flex;align-items:center;gap:12px;padding:15px;border-radius:12px;
+ border:1px solid #4ade80;background:linear-gradient(125deg,#13513b,#10342a)}
+.bs-draw-number{font-weight:950;font-size:24px;min-width:66px;border-radius:9px;color:#f4fffc;background:#0e7656;padding:13px 8px;text-align:center}
+.bs-draw-first-text{flex:1;min-width:0}
+.bs-draw-first-text small{display:block;font-size:12px;color:#cbffe4;font-weight:800;margin-bottom:3px}
+.bs-draw-first-name{display:block;font-size:clamp(19px,5vw,24px);font-weight:950;overflow-wrap:anywhere}
+.bs-draw-order-heading{font-size:12px;color:#d4ebff;font-weight:900;margin:15px 0 6px;letter-spacing:.04em}
+.bs-draw-order{margin:0;list-style:none;padding:0;max-height:140px;overflow-y:auto;display:grid;gap:4px}
+.bs-draw-order li{font-size:12px;background:#132a46;border:1px solid #304960;border-radius:6px;padding:7px 9px;color:#e5f0fd}
+.bs-draw-order li:first-child{color:#9ef8c6;border-color:#299b72;font-weight:900}
+.bs-draw-footnote{font-size:11px;color:#bfcfe3;line-height:1.45;margin:10px 0 5px}
+.bs-draw-action{margin:13px 0 2px;width:100%;border:none;border-radius:12px;background:#2563eb!important;
+ color:white!important;min-height:52px;font-weight:900;font-size:16px;cursor:pointer}
+.bs-draw-action:focus-visible{outline:3px solid #d9fff2;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.bs-draw-pop:not(.bs-draw-revealed) .bs-draw-wheel{animation:none}}
+@media(max-width:420px){.bs-draw-dialog{padding:13px;border-radius:15px}.bs-draw-wheel{padding:12px 8px;min-height:90px}
+.bs-draw-first{padding:10px}.bs-draw-number{font-size:20px;min-width:60px}}
+</style>
 </head><body class="marshal-view">
 <header><div class="brand"><img src="logo.svg" alt="TECH-ARTS CRAWLER logo" class="brand-logo"><div><h1>BS-STYLE POINT RC TIME ATTACK</h1><small>BORNEO SABAH • CRAWL HARD • COMPETE HARDER</small></div></div><span class="pill" id="status">Local mode</span></header>
 <div id="syncHealth" class="sync-health offline" role="status" aria-live="polite">OFFLINE - local safety active; uploads wait until Firebase reconnects.</div><div class="sync-controls"><button id="exportPendingBackup" type="button">Export backup</button><button id="retrySync" type="button">Retry pending sync</button><button id="sendRecovery" type="button" style="background:#8b5e19;border-color:#bd9136;color:#fff">SEND QUEUED RESULT FOR ORGANISER REVIEW</button></div>
@@ -1489,6 +1531,60 @@ $('retrySync').onclick=()=>{if(!online||!connectedToServer){setMsg('Connect to F
 const bs28Core=window.BS28;
 let bs28StickyGroup='',bs28NextGroupChoice='',bs28GroupUserChosen=false,bs28LockRef=null,bs28LockListener=null,bs28LockEventId='',bs28Locks={},bs28RequestRef=null,bs28RequestListener=null,bs28RequestEventId='',bs28Requests={},bs28RequestLoaded=false,bs28Switching=false,bs28Submitting=false;
 let bs28AssignmentNoticeUntil=0,bs28AssignmentNoticeText='';
+
+// v28.5.4: Animate the already-saved official order. Does NOT reshuffle, write Firebase, or start a timer.
+let bs28AutoDrawCleanup=null;
+function bs28ShowAutoDrawReveal(groupId,stageName,officialIds){
+ if(!marshalLinkMode||running||pendingRun||!Array.isArray(officialIds)||!officialIds.length)return;
+ const order=officialIds.filter(id=>!!data.drivers[id]),first=data.drivers[order[0]];
+ if(!first)return;
+ if(bs28AutoDrawCleanup)bs28AutoDrawCleanup();
+ const old=document.getElementById('bs2854AutoDrawPopup');if(old)old.remove();
+ const cover=document.createElement('div');cover.id='bs2854AutoDrawPopup';cover.className='bs-draw-pop';
+ const firstText='#'+String(first.num||'?')+' '+String(first.name||'');
+ const stageLabel=String(stageName||'SS?');
+ const list=order.map((id,i)=>{
+   const d=data.drivers[id];
+   return '<li>'+String(i+1)+'. #'+bs28Esc(d.num||'?')+' '+bs28Esc(d.name||'')+'</li>';
+ }).join('');
+ cover.innerHTML='<section class="bs-draw-dialog" role="dialog" aria-modal="true" aria-labelledby="bsDrawTitle">'+
+   '<div class="bs-draw-eyebrow">OFFICIAL AUTO DRAW · ORDER ALREADY SAVED</div>'+
+   '<h2 class="bs-draw-title" id="bsDrawTitle">Driver draw</h2>'+
+   '<div class="bs-draw-stagebar"><span class="bs-draw-group">'+bs28Esc(bs28GroupName(groupId))+'</span><span class="bs-draw-stage">'+bs28Esc(stageLabel)+'</span></div>'+
+   '<div class="bs-draw-wheel" aria-live="off"><div class="bs-draw-wheel-label" id="bsDrawWheelLabel">REVEALING OFFICIAL ORDER...</div><div class="bs-draw-wheel-name" id="bsDrawWheelName">DRAW IN PROGRESS</div></div>'+
+   '<div class="bs-draw-reveal"><div class="bs-draw-first"><span class="bs-draw-number">#'+bs28Esc(first.num||'?')+'</span>'+
+   '<div class="bs-draw-first-text"><small>FIRST DRIVER · POSITION 1</small><strong class="bs-draw-first-name">'+bs28Esc(first.name||'')+'</strong></div></div>'+
+   '<div class="bs-draw-order-heading">OFFICIAL RUNNING ORDER · '+order.length+' DRIVERS</div><ol class="bs-draw-order">'+list+'</ol></div>'+
+   '<p class="bs-draw-footnote">The official draw is already saved. Race Control is now on '+bs28Esc(stageLabel)+'. Timer remains stopped until START.</p>'+
+   '<button type="button" class="bs-draw-action" id="bsDrawContinue">SKIP ANIMATION</button></section>';
+ document.body.appendChild(cover);
+ const display=cover.querySelector('#bsDrawWheelName'),caption=cover.querySelector('#bsDrawWheelLabel'),button=cover.querySelector('#bsDrawContinue');
+ let interval=null,revealTimer=null,revealed=false,closed=false,frame=0;
+ const close=()=>{if(closed)return;closed=true;clearInterval(interval);clearTimeout(revealTimer);cover.remove();document.removeEventListener('keydown',keyHandler);if(bs28AutoDrawCleanup===close)bs28AutoDrawCleanup=null};
+ bs28AutoDrawCleanup=close;
+ const reveal=()=>{
+   if(closed||revealed)return;
+   revealed=true;clearInterval(interval);clearTimeout(revealTimer);
+   display.textContent=firstText;caption.textContent='DRAW COMPLETE · FIRST DRIVER';
+   cover.classList.add('bs-draw-revealed');
+   button.textContent='CONTINUE TO RACE CONTROL';
+   button.focus();
+ };
+ const keyHandler=e=>{if(e.key==='Escape')close()};
+ document.addEventListener('keydown',keyHandler);
+ button.addEventListener('click',()=>{if(!revealed)reveal();else close()});
+ cover.addEventListener('click',e=>{if(e.target===cover)close()});
+ const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(!reduced){
+  interval=setInterval(()=>{
+    if(closed||revealed)return;
+    const d=data.drivers[order[(frame*3+1)%order.length]]||first;
+    display.textContent='#'+String(d.num||'?')+' '+String(d.name||'');frame++;
+  },100);
+ }
+ revealTimer=setTimeout(reveal,reduced?180:1700);
+ button.focus();
+}
 const bs28AppliedRequestKey=()=>'bs-style-v28-marshal-applied-request:'+activeEventId();
 function bs28ShowAssignmentNotice(message){
  bs28AssignmentNoticeText=message;bs28AssignmentNoticeUntil=Date.now()+30000;
@@ -1734,7 +1830,9 @@ function bs28RenderMarshal(){
   if(nextStage>=0){
    bs28Switching=true;
    stage=nextStage;localStorage.setItem('bs28-stage',String(stage));
-   localStorage.removeItem(selectedDriverKey);$('manualTime').value='';
+   // Clear the previous stage's selected driver so Race Control picks the
+   // actual position-1 driver from the newly saved official order.
+   localStorage.removeItem(selectedDriverKey);$('driver').value='';$('manualTime').value='';
    localStorage.setItem(lastClockKey,'0');$('clock').textContent='00:00.00';
    localStorage.setItem(bs28AppliedRequestKey(),confirmed.requestId);
    localStorage.removeItem(bs28RequestKey());
@@ -1747,6 +1845,10 @@ function bs28RenderMarshal(){
    // The plan already has an accepted reservation AND saved official order.
    // Updating Race Control now populates the driver dropdown immediately.
    render();
+   // Display a purely visual auto-draw animation, then reveal the actual
+   // saved first driver and official order. Never rerandomize the Firebase draw.
+   bs28ShowAutoDrawReveal(confirmed.groupId,confirmed.destination,
+    plan.orders?.[confirmed.groupId]?.[confirmed.destination]?.order||[]);
    setTimeout(()=>{
     bs28Switching=false;bs28RenderMarshal();
     const anchor=document.querySelector('.marshal-control-head');
@@ -1829,7 +1931,7 @@ $('bs28NextGroup')?.addEventListener('change',e=>{
 $('bs28NextSS')?.addEventListener('change',bs28RenderMarshal);
 $('bs28SwitchButton')?.addEventListener('click',bs28SelectSS);
 
-window.BS28_MARSHAL_READY=true;window.BS28_MARSHAL_VERSION="28.5.2";setInterval(()=>{if(bs28IsActive())bs28RenderMarshal()},1800);bs28RenderMarshal();
+window.BS28_MARSHAL_READY=true;window.BS28_MARSHAL_VERSION="28.5.4";setInterval(()=>{if(bs28IsActive())bs28RenderMarshal()},1800);bs28RenderMarshal();
 })();
 /* System-wide uppercase for human-readable text fields, including dynamically rendered inputs. */
 (function installUppercaseWordInputs(){
