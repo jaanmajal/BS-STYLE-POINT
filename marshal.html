@@ -1,4 +1,4 @@
-<!doctype html><!-- v27.7.0: check Rules v5 deployment; server-issued PIN authorization; legacy lock support; detailed errors. --><!-- v27.6.6: updated penalty schedule, DNF minimum Gate-1 scoring, frozen DNF roster base, and official tie-break order. --><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101827"><link rel="icon" type="image/png" sizes="128x128" href="favicon.png"><link rel="apple-touch-icon" href="favicon.png"><title>BS-STYLE POINT RC TIME ATTACK S1 v27.7.0 - Marshal</title><style>
+<!doctype html><!-- v27.7.5: pin-authorized stage reset protected by Firebase Rules v7 run ID; avoids stale local transaction cache abort; legacy transaction fallback. --><!-- v27.6.6: updated penalty schedule, DNF minimum Gate-1 scoring, frozen DNF roster base, and official tie-break order. --><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101827"><link rel="icon" type="image/png" sizes="128x128" href="favicon.png"><link rel="apple-touch-icon" href="favicon.png"><title>BS-STYLE POINT RC TIME ATTACK S1 v27.7.5 - Marshal</title><style>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#edf3ff;background:#0a1120}*{box-sizing:border-box}body{margin:auto;max-width:980px;padding:18px}header,.flex{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}h1{font-size:25px;margin:0}h2{font-size:19px;margin:0 0 12px}.muted,small{color:#aab9ce}.card{background:#172238;border:1px solid #30425e;border-radius:16px;padding:16px;margin:14px 0}.card.firebase-online{border:4px solid #22c55e!important;box-shadow:0 0 0 1px rgba(34,197,94,.32),0 0 18px rgba(34,197,94,.24)!important;transition:border-color .15s ease,box-shadow .15s ease}.card.firebase-online:focus-within{border-color:#4ade80!important}button,input,select,textarea{font:inherit;border-radius:10px;border:1px solid #425572;padding:11px;background:#0c1729;color:white}button{cursor:pointer;font-weight:700}button:disabled{opacity:.4;cursor:default}.primary{background:#2563eb}.start{background:#168348}.stop{background:#b92d39}.warn{background:#8d5918}.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.row>*{flex:1;min-width:120px}label{display:block;font-size:13px;color:#b8c7da;margin-bottom:4px}input,select{width:100%}.clock-wrap{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px 0}.clock{text-align:center;font-size:clamp(48px,10vw,90px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-3px;margin:0}.connection-indicator{font-size:14px;font-weight:900;letter-spacing:.04em;border:2px solid #ef4444;background:#651e2b;color:#ffe4e6;padding:9px 12px;white-space:nowrap}.connection-indicator.online{border-color:#22c55e;background:#14532d;color:#dcfce7}.connection-indicator.offline{border-color:#ef4444;background:#651e2b;color:#ffe4e6}.save-result{background:#087443;border-color:#22c55e}.confirm-stop{background:#c27a13;border-color:#f0b44d;color:#fff7e6}.fault-restart-button{background:#7c2d12;border:2px solid #fb923c;color:#fff7ed;min-height:50px;font-weight:900}.fault-restart-note{font-size:12px;color:#fed7aa;align-self:center}.confirm-stop-row{margin-top:6px}.confirm-stop-row button{width:100%;min-height:52px;font-size:17px}.manual-help{font-size:13px;line-height:1.5}.stage{display:flex;gap:8px}.stage button{flex:1}.selected{outline:3px solid #66b1ff}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:10px 5px;border-bottom:1px solid #35445c;text-align:left}th{color:#b3c4db}.scroll{overflow:auto}.pill{border-radius:99px;background:#273a55;padding:5px 10px;font-size:12px}.error{color:#ff9f9f}.ok{color:#85e7ae}.hidden{display:none!important}details{margin:12px 0}summary{cursor:pointer;font-weight:700}.buttons button{min-height:65px;font-size:22px}.dns-row{display:flex;justify-content:flex-end;margin:-3px 0 6px}.dns-tab{flex:0 0 auto;min-width:64px;min-height:30px;padding:4px 13px;font-size:11px;font-weight:850;letter-spacing:.06em;border-radius:7px;background:#263b56;border:1px solid #6b86a8;color:#e4efff}.dns-tab:not(:disabled):hover{background:#345273}textarea{width:100%;min-height:100px}a{color:#8cc8ff}.brand{display:flex;align-items:center;gap:12px}.brand-logo{width:66px;height:66px;object-fit:contain;border-radius:9px}footer{text-align:center;color:#aab9ce;font-size:12px;padding:25px 0 15px;letter-spacing:.08em}.wake-state{font-size:13px;color:#b9d7ff;margin-top:8px}.row .alarm-icon{flex:0 0 44px;min-width:44px;width:44px;padding:7px 4px;font-size:19px;line-height:1}.alarm-row{align-items:center}.alarm-row #alarmStatus{flex:1;min-width:0}.timer-selectors>div{flex:1;min-width:130px}
 .penalty-quick-wrap{margin-top:12px;padding-top:12px;border-top:1px solid #35445c}
 .penalty-counter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:8px;margin-top:10px}
@@ -838,7 +838,7 @@ function showStageLockConflictModal(stageName,lock,driverId,driver){
   const logoWrap=el('div','');logoWrap.style.cssText='text-align:center;padding:16px 20px 2px';
   const logo=el('img','');logo.src='logo.jpg';logo.alt='TEC-ARTS CRAWLER logo';logo.style.cssText='display:block;width:66px;height:66px;object-fit:contain;margin:0 auto 4px;border-radius:12px';logo.onerror=()=>logo.remove();logoWrap.append(logo);modal.append(logoWrap);
   const top=el('div','race-modal-top');top.append(el('div','race-modal-icon','🔒'));
-  const heading=el('div','race-modal-heading');heading.append(el('div','race-modal-kicker','STAGE LOCK · v27.7.3'));
+  const heading=el('div','race-modal-heading');heading.append(el('div','race-modal-kicker','STAGE LOCK · v27.7.5'));
   const title=el('h2','race-modal-title','Stage already in use');title.id='stageLockConflictTitle';heading.append(title);
   heading.append(el('p','race-modal-subtitle',stageName+' is currently reserved by another marshal.'));top.append(heading);
   const closeX=el('button','race-modal-close','×');closeX.type='button';closeX.setAttribute('aria-label','Close stage lock notice');top.append(closeX);modal.append(top);
@@ -864,9 +864,10 @@ function showStageLockConflictModal(stageName,lock,driverId,driver){
   backdrop.append(modal);backdrop.addEventListener('click',e=>{if(e.target===backdrop&&!busy)finish(false)});
   document.body.append(backdrop);document.addEventListener('keydown',onKey);
   pin.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();unlock.click()}});
-  // v27.7.3: same exact-lock reset transaction as Main Control, authorized
-  // through the limited marshal proof in Firebase Rules v7. Never bypasses a
-  // closed marshal link. Errors name the failed Firebase operation.
+  // v27.7.5: anonymous marshals cannot use Main Control organiser permissions.
+  // A short-lived, run-bound Firebase Rules v7 proof authorizes deleting only
+  // the approved run. Avoid a local transaction cache abort for run-ID locks.
+  // A legacy lock without runId uses a guarded transaction instead.
   const describeError=(step,e)=>{
     const code=String(e?.code||e?.name||'ERROR').toUpperCase();
     const detail=String(e?.message||e||'unknown error');
@@ -960,23 +961,62 @@ function showStageLockConflictModal(stageName,lock,driverId,driver){
       if(!storedProof||storedProof.authUid!==proof.authUid||storedProof.pinHash!==digest||String(storedProof.runId)!==String(runId)){
         throw Error('PIN PROOF NOT CONFIRMED. The lock was NOT reset. Retry after checking Firebase synchronization.');
       }
-      show('4/5 Resetting stage lock (same transaction as Main Control)');
-      let tx;
-      try{
-        tx=await lockRef.transaction(current=>{
-          // Never clear a different run that acquired the stage meanwhile.
-          if(!current||stableStringify(current)!==stableStringify(exactLock))return;
-          return null;
-        },undefined,false);
-      }catch(e){throw Error(describeError('STAGE LOCK RESET WRITE',e))}
-      if(!tx.committed){
-        throw Error('STAGE LOCK CHANGED during the reset. Nothing was deleted. Close this popup and retry using the current driver.');
+      show('4/5 Checking that this is still the approved run');
+      let currentLock;
+      try{currentLock=(await lockRef.once('value')).val()}
+      catch(e){throw Error(describeError('LATEST STAGE LOCK READ',e))}
+      if(currentLock){
+        // A runId is unique per attempt. The Firebase Rules v7 delete permission
+        // ALSO checks proof.runId against the CURRENT server data.runId, so a new
+        // run cannot be deleted even if it starts after this final read.
+        const approvedRunId=exactLock.runId==null?'':String(exactLock.runId);
+        const currentRunId=currentLock.runId==null?'':String(currentLock.runId);
+        if(approvedRunId && currentRunId!==approvedRunId){
+          throw Error('STAGE WAS TAKEN OVER BEFORE UNLOCK: Another run now owns '+stageName+'. Nothing was deleted. Close this popup and retry.');
+        }
+        if(!approvedRunId && stableStringify(currentLock)!==stableStringify(exactLock)){
+          throw Error('LEGACY STAGE LOCK CHANGED: The existing lock has no run ID and its contents changed. Nothing was deleted. Inspect the current driver and try again.');
+        }
+        if(approvedRunId){
+          // IMPORTANT: Do not use transaction(current => current === null ?
+          // undefined : ...) here. The Realtime Database SDK can first invoke
+          // a transaction with an empty LOCAL cache, aborting it even though a
+          // matching lock exists on the server. Rules v7 provides an atomic,
+          // run-ID-bound delete guard, so remove() is both safer and reliable.
+          show('4/5 Force unlocking the approved run in Firebase');
+          try{await lockRef.remove()}
+          catch(e){throw Error(describeError('SERVER-PROTECTED STAGE LOCK REMOVE',e))}
+        }else{
+          // Older locks without a run ID have no unique server-side identity.
+          // Preserve Main Control's exact-lock transaction safety for these.
+          // On a missing initial local cache, return null (not undefined) so
+          // Firebase can do a server compare-and-set / retry with server data.
+          show('4/5 Resetting legacy lock with an exact-match transaction');
+          let tx;
+          try{
+            tx=await lockRef.transaction(current=>{
+              if(current===null)return null;
+              if(stableStringify(current)!==stableStringify(exactLock))return;
+              return null;
+            },undefined,false);
+          }catch(e){throw Error(describeError('LEGACY STAGE LOCK RESET',e))}
+          if(!tx.committed){
+            throw Error('LEGACY STAGE LOCK CHANGED during the reset. No different run was deleted. Use Main Control to clear a lock that keeps changing.');
+          }
+        }
       }
       show('5/5 Confirming stage is unlocked');
       let remaining;
       try{remaining=(await lockRef.once('value')).val()}
       catch(e){throw Error(describeError('STAGE LOCK VERIFY',e))}
-      if(remaining){throw Error('RESET NOT CONFIRMED. Firebase still has a stage lock. A different device may have claimed it again.');}
+      if(remaining){
+        const approvedId=exactLock.runId==null?'':String(exactLock.runId);
+        const remainingId=remaining.runId==null?'':String(remaining.runId);
+        if(approvedId && remainingId && remainingId!==approvedId){
+          throw Error('STAGE WAS RELEASED BUT ANOTHER MARSHAL ALREADY CLAIMED IT. Results were not deleted. Close the popup to see the current owner.');
+        }
+        throw Error('RESET NOT CONFIRMED: Firebase still shows a stage lock. Check that Rules v7 is published and the link is open.');
+      }
       if(localStageLock&&localStageLock.eventId===eventId&&localStageLock.stage===stageName&&String(localStageLock.runId||'')===String(exactLock.runId||'')){
         localStageLock=null;try{localStorage.removeItem(stageLockLocalKey(eventId))}catch(e){}
       }
